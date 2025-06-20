@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 1. 读取图像并转换为灰度图</c>
+<l>read_image (Image1, 'E:/Detect_datasets/钽电容/穹顶光源/钽电容-0612/新/Image_20250612163632305.bmp')</l>
+<c></c>
+<l>get_image_size (Image1, Width, Height)</l>
+<c></c>
+<c></c>
+<c>*创建一个新窗口</c>
+<l>dev_open_window_fit_image (Image1, 0, 0, Width, Height, WindowHandle)</l>
+<c></c>
+<c>*设置字体信息:字体大小为16，字体为mono,粗体，斜体</c>
+<l>set_display_font (WindowHandle, 100, 'mono', 'true', 'false')</l>
+<c></c>
+<c></c>
+<l>rgb1_to_gray (Image1, GrayImage)</l>
+<l>decompose3(Image1, r, g, b)</l>
+<c>* 2. 定义 ROI 区域，裁剪图像</c>
+<l>gen_rectangle1(ROI, 128, 110, 720, 1110)</l>
+<l>reduce_domain(Image1, ROI, ImageROI)</l>
+<l>rgb1_to_gray(ImageROI, GrayImageROI)</l>
+<c></c>
+<c>* 3. 平滑图像</c>
+<l>smooth_image(GrayImageROI, SmoothImageROI, 'gauss', 2)</l>
+<c></c>
+<c>* 4. 灰度增强（线性映射）</c>
+<l>scale_image(SmoothImageROI, EnhancedImageROI, 2, -80)</l>
+<c></c>
+<c>* 5. 阈值处理提取疑似缺陷</c>
+<l>threshold(EnhancedImageROI, DefectRegion, 0, 20)</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* 8. 计算面积与中心</c>
+<l>area_center(DefectRegion, Area1, Row, Column)</l>
+<c></c>
+<c>* 6. 连通区域分析</c>
+<l>connection(DefectRegion, ConnectedRegions)</l>
+<c></c>
+<c>* 7. 面积过滤（初筛）</c>
+<l>select_shape(ConnectedRegions, DefectResult, 'area', 'and', 0, 9999999999)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

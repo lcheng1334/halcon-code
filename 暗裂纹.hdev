@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>* read_image (Image, 'D:/code/dataset/Capacitor/Press_open_5/Image_20250618134049882.bmp')</l>
+<c></c>
+<l>* gen_rectangle1(G, 196, 143, 855, 1067)</l>
+<l>* reduce_domain(Image, G, ImageROI)</l>
+<l>* rgb1_to_gray(ImageROI, GrayImageROI)</l>
+<l>* decompose3 (ImageROI, r, g, b)</l>
+<c></c>
+<l>* smooth_image(g, SmoothImageROI, 'gauss', 2)</l>
+<c></c>
+<l>* emphasize(g, EnhancedImage, 5, 5, 2)</l>
+<c></c>
+<c></c>
+<l>* scale_image(SmoothImageROI, ScaledImage, 2, -120)</l>
+<c></c>
+<l>* connection (ScaledImage, ConnectedRegions)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>* Read the image</c>
+<l>* read_image (Image, 'D:/code/dataset/Capacitor/Press_open_5/Image_20250618134049882.bmp')</l>
+<c></c>
+<c>* Convert to grayscale if not already</c>
+<l>* rgb1_to_gray (Image, GrayImage)</l>
+<c></c>
+<c>* Enhance contrast</c>
+<l>* emphasize (GrayImage, EnhancedImage, 7, 7, 1)</l>
+<c></c>
+<c>* Apply edge detection (e.g., using Sobel operator)</c>
+<l>* sobel_amp (EnhancedImage, EdgeImage, 'sum_abs', 3)</l>
+<c></c>
+<c>* Threshold to isolate dark regions</c>
+<l>* threshold (EdgeImage, Regions, 0, 50)</l>
+<c></c>
+<c>* Morphological operations to clean up noise</c>
+<l>* opening_circle (Regions, OpenedRegions, 2.5)</l>
+<l>* connection (OpenedRegions, ConnectedRegions)</l>
+<l>* select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 100, 99999)</l>
+<c></c>
+<c>* Extract the crack regions</c>
+<c></c>
+<l>* gen_region_contour_xld (SelectedRegions, Region, 'filled')</l>
+<c></c>
+<c>* Display the result</c>
+<l>* dev_display (Image)</l>
+<l>* dev_set_color ('red')</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>* 读取图像</c>
+<l>* read_image(Image, 'D:/code/dataset/Capacitor/Press_open_5/Image_20250618134049882.bmp')</l>
+<c></c>
+<c>* 预处理：轻微平滑，去噪增强裂纹特征</c>
+<l>* mean_image(Image, SmoothImage, 3, 3)</l>
+<c></c>
+<c>* 可以增强对比度（可选）</c>
+<l>* scale_image(SmoothImage, ScaledImage, 2, -100)</l>
+<c></c>
+<c>* 使用高斯线检测裂纹</c>
+<c>* Sigma 设成 1.5 左右比较适合细裂纹</c>
+<c>* Low 和 High 阈值可以适当调节</c>
+<l>* lines_gauss (ScaledImage, Lines, 2, 3, 8, 'dark', 'true', 'bar-shaped', 'true')</l>
+<c></c>
+<c></c>
+<c>* 如果存在断裂，可使用线段融合</c>
+<c></c>
+<l>* lines_fusion(Lines, MergedLines, 15, 20, 'distance', 0, 99999, 'true')</l>
+<c></c>
+<c>* 显示结果</c>
+<l>* dev_display(Image)</l>
+<l>* dev_set_color('red')</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>* 读取图像</c>
+<l>read_image(Image, 'D:/code/dataset/Capacitor/Press_open_5/Image_20250618134049882.bmp')</l>
+<c></c>
+<c></c>
+<l>gen_contour_polygon_xld (ROI_XLD, [206, 206, 404, 430, 441, 228, 240, 439, 849, 821, 409, 206], [185, 406, 393, 400, 835, 843 ,1049, 1054, 1015, 172, 158, 185])</l>
+<c></c>
+<l>gen_region_contour_xld (ROI_XLD, ROI, 'filled')</l>
+<c></c>
+<l>reduce_domain(Image, ROI, ImageROI)</l>
+<c></c>
+<l>rgb1_to_gray(ImageROI, GrayImageROI)</l>
+<l>decompose3 (ImageROI, r, g, b)</l>
+<c></c>
+<c></c>
+<l>smooth_image(g, SmoothImageROI, 'gauss', 2)</l>
+<c></c>
+<c>* 预处理：中值滤波降噪，去除随机噪声</c>
+<l>* median_image(g, ImageMedian, 'circle', 3, 'mirrored')</l>
+<c></c>
+<l>emphasize (SmoothImageROI, EnhancedImage, 10, 10, 1)</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* 顶帽变换增强暗裂纹（消除背景大尺度亮度）</c>
+<c>* top_hat(ImageMedian, TopHat, 'circle', 15)</c>
+<c></c>
+<c>* 灰度拉伸增强裂纹特征</c>
+<l>scale_image(EnhancedImage, ScaledImage, 2, -120)</l>
+<c></c>
+<c>* 二次平滑（去除轻微伪影）</c>
+<l>* mean_image(ScaledImage, SmoothImage, 5, 5)</l>
+<c></c>
+<c>* Canny 边缘检测提取裂纹边缘</c>
+<l>edges_sub_pix(ScaledImage, Edges, 'canny', 0.5, 10, 20)</l>
+<l>edges_image (ScaledImage, ImaAmp, ImaDir, 'canny', 1, 'nms', 20, 40)</l>
+<c></c>
+<l>threshold(ImaAmp, EdgeRegion, 30, 255)</l>
+<c></c>
+<l>* union_adjacent_contours_xld(EdgeRegion, UnionContours, 10, 1, 'attr_keep')</l>
+<c>* 提取边缘区域内的方向值</c>
+<l>* reduce_domain(ImaDir, CrackContours, EdgeDirectionReduced)</l>
+<c></c>
+<c>* 取出方向值</c>
+<l>* get_grayval(EdgeDirectionReduced, 512, 512, Direction)</l>
+<l>* gen_contour_region_xld(CrackContours, Contours, 'border')</l>
+<c></c>
+<c>* 每条轮廓做拟合</c>
+<l>* fit_line_contour_xld(Contours, 'tukey', -1, 2, 15, 2, RowBegin, ColBegin, RowEnd, ColEnd, Nr, Nc, Dist)</l>
+<c></c>
+<c>* 计算每条轮廓的整体方向</c>
+<l>* Angle := atan2(RowEnd - RowBegin, ColEnd - ColBegin)</l>
+<l>* pi := 3.141592653589793</l>
+<l>* AngleDeg := Angle * 180 / pi</l>
+<c></c>
+<c>* 融合断裂边缘（重要！）</c>
+<l>union_adjacent_contours_xld(Edges, UnionContours, 10, 1, 'attr_keep')</l>
+<c></c>
+<c>* 只保留较长的裂纹线段</c>
+<l>select_shape_xld(UnionContours, LongContours, 'contlength', 'and', 30, 99999)</l>
+<c></c>
+<c>* 进一步保留细长的裂纹特征</c>
+<l>select_shape_xld(LongContours, CrackContours, 'anisometry', 'and', 2, 99999)</l>
+<c></c>
+<l>connection (EdgeRegion, ConnectedRegions)</l>
+<c></c>
+<l>area_center(ConnectedRegions, Area1, Row, Column)</l>
+<c></c>
+<c></c>
+<l>opening_circle (EdgeRegion, RegionOpening, 6)</l>
+<l>dev_display(RegionOpening)</l>
+<c></c>
+<c></c>
+<c>* 显示原图</c>
+<l>dev_display(Image)</l>
+<c>* 显示检测结果</c>
+<l>dev_set_line_width(2)</l>
+<l>dev_set_color('red')</l>
+<l>dev_display(CrackContours)</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="process_image">
+<interface>
+<io>
+<par name="ImageROI" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="GrayImageROI" base_type="iconic" dimension="0"/>
+<par name="r" base_type="iconic" dimension="0"/>
+<par name="g" base_type="iconic" dimension="0"/>
+<par name="b" base_type="iconic" dimension="0"/>
+</oo>
+</interface>
+<body>
+<l>rgb1_to_gray(ImageROI, GrayImageROI)</l>
+<l>decompose3 (ImageROI, r, g, b)</l>
+<l>return ()</l>
+</body>
+<docu id="process_image">
+<parameters>
+<parameter id="GrayImageROI"/>
+<parameter id="ImageROI"/>
+<parameter id="b"/>
+<parameter id="g"/>
+<parameter id="r"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

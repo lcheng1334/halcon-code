@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 1. 读取图像并转换为灰度图</c>
+<l>read_image (Image1, 'E:/Detect_datasets/钽电容/new_dataset/新缺陷例图/沙眼/Image_20250612170114456.bmp')</l>
+<c></c>
+<l>decompose3 (Image1, R, G, B)</l>
+<c></c>
+<l>rgb1_to_gray (Image1, GrayImage)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>* 2. 定义 ROI 区域，裁剪图像</c>
+<c></c>
+<c>*使用自动阈值分割图像前景区域</c>
+<l>* bin_threshold (Image1, ROI)</l>
+<c></c>
+<l>gen_rectangle1(B, 156, 270, 760, 1130)</l>
+<l>reduce_domain(Image1, B, ImageROI)</l>
+<l>rgb1_to_gray(ImageROI, GrayImageROI)</l>
+<l>decompose3 (ImageROI, R, G, B)</l>
+<c></c>
+<c>*均值滤波</c>
+<l>* mean_image (GrayImageROI, ImageMean, 200, 3) </l>
+<c></c>
+<c>*局部阈值,分割出前景</c>
+<l>* dyn_threshold (GrayImageROI, ImageMean, RegionDynThresh, 7, 'light') </l>
+<c></c>
+<c></c>
+<c>* 3. 平滑图像</c>
+<l>smooth_image(B, SmoothImageROI, 'gauss', 2)</l>
+<c></c>
+<c>* 4. 灰度增强（线性映射）</c>
+<l>scale_image(SmoothImageROI, EnhancedImageROI, 2, -100)</l>
+<c></c>
+<l>threshold(EnhancedImageROI, DefectRegion, 60, 90)</l>
+<c></c>
+<l>connection(DefectRegion, ConnectedRegions) </l>
+<c></c>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 400, 1000)</l>
+<c></c>
+<c></c>
+<c>* 显示原图</c>
+<l>dev_display(Image1)</l>
+<c></c>
+<c>* 显示筛选后的缺陷区域（满足面积条件）</c>
+<l>dev_set_color('red')</l>
+<l>dev_display(SelectedRegions)</l>
+<c></c>
+<c></c>
+<c>* 7. 打开新窗口显示阈值图像（增强图像），并设置字体</c>
+<l>get_image_size(EnhancedImageROI, Width, Height)</l>
+<l>dev_close_window()</l>
+<l>dev_open_window_fit_image(EnhancedImageROI, 0, 0, Width, Height, WindowHandle)</l>
+<l>dev_set_window(WindowHandle)</l>
+<l>set_display_font(WindowHandle, 20, 'mono', 'true', 'false')</l>
+<c></c>
+<c>* 8. 显示增强图像作为背景</c>
+<l>dev_display(EnhancedImageROI)</l>
+<c></c>
+<c>* 9. 遍历每个连通区域，显示轮廓和面积</c>
+<l>count_obj(ConnectedRegions, Num)</l>
+<l>for Index := 1 to Num by 1</l>
+<l>    select_obj(ConnectedRegions, SingleRegion, Index)</l>
+<l>    area_center(SingleRegion, Area, Row, Column)</l>
+<c></c>
+<c>    * 显示轮廓</c>
+<l>    dev_set_color('green')</l>
+<l>    dev_display(SingleRegion)</l>
+<c></c>
+<c>    * 显示面积（单位像素²）</c>
+<l>    Text := 'Area: ' + Area$'.0f'</l>
+<l>    disp_message(WindowHandle, Text, 'image', Row, Column, 'white', 'false')</l>
+<l>endfor</l>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

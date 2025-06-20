@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 1. 读取图像并转换为灰度图</c>
+<l>read_image (Image1, 'E:/Detect_datasets/钽电容/穹顶光源/钽电容-0612/新/Image_20250612164114344.bmp')</l>
+<c></c>
+<l>gen_rectangle1(ROI, 160, 126, 832, 1238)</l>
+<l>reduce_domain(Image1, ROI, ImageROI)</l>
+<c></c>
+<l>decompose3 (ImageROI, R, G, B)</l>
+<l>rgb1_to_gray (ImageROI, GrayImage)</l>
+<c></c>
+<c></c>
+<l>smooth_image(G, SmoothImageROI, 'gauss', 2)</l>
+<c></c>
+<c></c>
+<l>scale_image(SmoothImageROI, EnhancedImageROI, 2, -60)</l>
+<c></c>
+<c></c>
+<l>threshold(EnhancedImageROI, DefectRegion, 0, 20)</l>
+<c></c>
+<l>connection(DefectRegion, ConnectedRegions) </l>
+<c></c>
+<l>area_center(ConnectedRegions, Area, Row, Column)</l>
+<c></c>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 2000, 5000)</l>
+<c></c>
+<c>* 显示原图</c>
+<l>dev_display(Image1)</l>
+<c></c>
+<c>* 显示筛选后的缺陷区域（满足面积条件）</c>
+<l>dev_set_color('red')</l>
+<l>dev_display(SelectedRegions)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

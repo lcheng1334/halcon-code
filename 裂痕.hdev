@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 读取图像</c>
+<l>read_image (Image, 'D:/code/dataset/新缺陷例图/裂痕/liehen.jpg')</l>
+<c></c>
+<c></c>
+<c>* 获取图像尺寸</c>
+<l>get_image_size(Image, Width, Height)</l>
+<c></c>
+<c></c>
+<c>*创建一个新窗口</c>
+<l>dev_open_window_fit_image (Image, 0, 0, Width, Height, WindowHandle)</l>
+<c></c>
+<c>* 定义ROI区域</c>
+<l>gen_rectangle1(ROI, 187, 199, 830, 1003)</l>
+<l>reduce_domain(Image, ROI, ImageROI)</l>
+<c></c>
+<c>* 分解RGB通道并转换为灰度图</c>
+<l>decompose3(ImageROI, R, G, B)</l>
+<l>rgb1_to_gray(ImageROI, GrayImage)</l>
+<c></c>
+<c></c>
+<l>sub_image (R, G, ImageSub, 1, 128)</l>
+<c></c>
+<c>* 图像预</c>
+<l>smooth_image(G, SmoothedImage, 'gauss', 3)</l>
+<c></c>
+<c>* 灰度增强</c>
+<l>scale_image(SmoothedImage, EnhancedImageROI, 2, -60)</l>
+<c></c>
+<c>* 阈值处理提取疑似缺陷</c>
+<l>threshold(EnhancedImageROI, DefectRegion, 0, 30)</l>
+<c></c>
+<c></c>
+<c>* 连通区域分析</c>
+<l>connection(DefectRegion, ConnectedRegions)</l>
+<l>select_shape(ConnectedRegions, SelectedRegions, 'area', 'and', 2000, 5000)</l>
+<c></c>
+<c>* 显示原图</c>
+<l>dev_display(Image)</l>
+<c></c>
+<c>* 显示筛选后的缺陷区域（满足面积条件）</c>
+<l>dev_set_color('red')</l>
+<l>dev_display(DefectRegion)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>* 读取图像</c>
+<l>* read_image (Image, 'D:/code/dataset/新缺陷例图/裂痕/liehen.jpg')</l>
+<c></c>
+<c></c>
+<c>* 获取图像尺寸</c>
+<l>* get_image_size(Image, Width, Height)</l>
+<c></c>
+<c></c>
+<c>*创建一个新窗口</c>
+<l>* dev_open_window_fit_image (Image, 0, 0, Width, Height, WindowHandle)</l>
+<c></c>
+<c>* 定义ROI区域</c>
+<l>* gen_rectangle1(ROI, 187, 199, 830, 1003)</l>
+<l>* reduce_domain(Image, ROI, ImageROI)</l>
+<c></c>
+<c></c>
+<c>* 分解RGB通道并转换为灰度图</c>
+<l>* decompose3(ImageROI, R, G, B)</l>
+<l>* rgb1_to_gray(ImageROI, GrayImage)</l>
+<c></c>
+<c>* 预处理 - 增强边缘</c>
+<c></c>
+<c>* 使用高斯滤波平滑图像</c>
+<l>* Gaussian_Image(GrayImage, SmoothedImage, 1.5)</l>
+<c></c>
+<c>* 使用拉普拉斯算子（基于原始图像或平滑图像）增强边缘</c>
+<c>* 如果 Laplace_Gaussian 可用，可以直接用：</c>
+<c>* Laplace_Gaussian(GrayImage, EdgeEnhanced, 1.5, 1.0)</c>
+<c>* 如果不行，先用高斯平滑再用原始拉普拉斯：</c>
+<l>* Laplace_Origin(SmoothedImage, EdgeEnhanced, 1.0)</l>
+<c></c>
+<c>* 自适应阈值处理（更适合裂痕检测）</c>
+<l>* Threshold_Adapt(EdgeEnhanced, DefectRegion, 10, 30, 'gaussian', 'deterministic')</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* 形态学处理 - 连接断裂的裂痕</c>
+<c>* 先开运算去除小噪点，再闭运算连接断裂部分</c>
+<l>* opening_rectangle1(DefectRegion, Opened, 1, 1)</l>
+<l>* closing_rectangle1(Opened, Closed, 5, 5)</l>
+<c></c>
+<c>* 连通区域分析</c>
+<l>* connection(Closed, ConnectedRegions)</l>
+<l>* select_shape(ConnectedRegions, SelectedRegions, 'area', 'and', 1000, 50000)</l>
+<l>* select_shape(SelectedRegions, FinalRegions, 'width', 'and', 1, 50)  * 限制宽度，排除大面积区域</l>
+<c></c>
+<c>* 显示结果</c>
+<l>* dev_display(Image)</l>
+<l>* dev_set_color('red')</l>
+<l>* dev_display(FinalRegions)</l>
+<c></c>
+<c>* 测量裂痕长度</c>
+<l>* dev_set_color('blue')</l>
+<l>* dev_set_draw('fill')</l>
+<l>* area_rectangle1(FinalRegions, Row, Column, A, B)</l>
+<l>* dev_display([Row,Column])</l>
+<l>* dev_display([A,B])</l>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

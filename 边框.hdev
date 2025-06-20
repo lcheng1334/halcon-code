@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>* 1. 获取指定文件夹下所有图像文件（支持 bmp/jpg/png 等）</c>
+<l>list_files ('D:/钽电容/暗裂纹/Capacitor/Press_open_5/', ['files'], Files)</l>
+<c></c>
+<l>tuple_length (Files, Length)</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* 3. 循环读取每张图片</c>
+<l>for Index := 1 to NumFiles by 1</l>
+<l>    select_obj (FileList, FileHandle, Index)</l>
+<l>    get_string (FileHandle, ImagePath)</l>
+<c></c>
+<c>    * 4. 读取图片</c>
+<l>    read_image (Image, ImagePath)</l>
+<c></c>
+<c>    * 5. 显示图像</c>
+<l>    dev_clear_window ()</l>
+<l>    dev_display (Image)</l>
+<c></c>
+<c>    * 6. 等待 0.5 秒，方便观察</c>
+<l>    wait_seconds (0.5)</l>
+<l>endfor</l>
+<c></c>
+<c>* 1. 读取图像</c>
+<l>read_image (GrayImage, 'D:/钽电容/暗裂纹/Capacitor/Press_open_5/Image_20250618135654176.bmp')</l>
+<c></c>
+<l>smooth_image (GrayImage, ImageSmooth, 'gauss', 8)</l>
+<c></c>
+<l>rgb1_to_gray (ImageSmooth, GrayImage1)</l>
+<c>* 2. 图像预处理（可选，提高分割效果）</c>
+<l>median_image (GrayImage1, ImageFiltered, 'circle', 3, 'mirrored')</l>
+<c></c>
+<c>* 3. 灰度阈值分割（这里识别亮区域，灰度值大于180）</c>
+<l>binary_threshold (ImageFiltered, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<c></c>
+<l>reduce_domain(GrayImage, ImageFiltered, ImageROI)</l>
+<c></c>
+<l>threshold (ImageFiltered, RegionBright, 0, 139)</l>
+<c></c>
+<c>* 若是识别“暗区域”，可设为：</c>
+<l>* threshold (ImageFiltered, RegionDark, 0, 60)</l>
+<c></c>
+<c>* 4. 提取连通区域</c>
+<l>connection (RegionBright, ConnectedRegions)</l>
+<c></c>
+<c>* 5. 筛选目标区域（按面积过滤小区域）</c>
+<l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 0, 999999)</l>
+<l>select_shape ( TargetRegions, FilteredRegions, 'rect2_len1', 'and', 300, 9999)     </l>
+<l>select_shape ( FilteredRegions, FinalRegions, 'circularity', 'and', 0.6, 1.0)         </l>
+<c></c>
+<c></c>
+<c>* 6. 显示结果：只显示边界</c>
+<l>dev_close_window()</l>
+<l>dev_open_window (0, 0, 512, 512, 'black', WindowHandle)</l>
+<l>dev_display (GrayImage)</l>
+<l>dev_set_color ('red')</l>
+<l>dev_set_draw ('margin')</l>
+<c></c>
+<c>* 提取边界并显示</c>
+<l>boundary ( FinalRegions, RegionBoundary, 'inner')</l>
+<l>dev_display (RegionBoundary)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

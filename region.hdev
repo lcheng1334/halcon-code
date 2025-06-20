@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 读取图像</c>
+<l>read_image (Image, 'D:/code/dataset/新缺陷例图/1分类/Image_20250616112102885.bmp')</l>
+<c></c>
+<l>smooth_image(Image, SmoothedImage, 'gauss', 3)</l>
+<c></c>
+<c>* 转换为灰度图像（如果图像不是灰度图像）</c>
+<l>rgb1_to_gray (SmoothedImage, GrayImage)</l>
+<c></c>
+<c>* 应用阈值</c>
+<l>* threshold (GrayImage, Regions, 60, 130)</l>
+<l>binary_threshold (GrayImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<c></c>
+<c>* 显示提取的 ROI</c>
+<l>dev_set_color ('red')</l>
+<l>dev_display (Region)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

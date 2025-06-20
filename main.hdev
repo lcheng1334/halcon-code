@@ -1,0 +1,777 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* Image1 打印不连续</c>
+<c>* Image2 大面积污损</c>
+<c>* Image3 底部烧伤</c>
+<c>* Image4 划痕</c>
+<c>* Image5 沙眼</c>
+<c>* Image6 烧伤字符</c>
+<c>* Image7 引脚灼伤</c>
+<c></c>
+<c></c>
+<c>* 定义ROI区域</c>
+<c></c>
+<l>xlabel1 := [417, 428, 819, 806, 417]</l>
+<l>ylabel1 := [139, 1208, 1152, 184, 139]</l>
+<c></c>
+<c></c>
+<l>Row1 := 220</l>
+<l>Col1 := 154</l>
+<l>Row2 := 810</l>
+<l>Col2 := 1200</l>
+<c></c>
+<c></c>
+<l>* read_image (Image1, 'E:/Detect_datasets/钽电容/new_dataset/新缺陷例图/1分类/3.打印不良---打印线条不连续/Image_20250616114152561.bmp')</l>
+<l>* read_image (Image2, 'E:/Detect_datasets/钽电容/new_dataset/新缺陷例图/新/Image_20250612163038577.bmp')</l>
+<l>* read_image (Image22, 'E:/Detect_datasets/钽电容/new_dataset/模板/Image_20250613153434389.bmp')</l>
+<l>* read_image (Image3, 'E:/Detect_datasets/钽电容/new_dataset/新缺陷例图/新/Image_20250612164114344.bmp')</l>
+<l>* read_image (Image4, 'E:/Detect_datasets/钽电容/new_dataset/新缺陷例图/沙眼/Image_20250612170114456.bmp')</l>
+<l>* read_image (Image5, 'E:/Detect_datasets/钽电容/new_dataset/新缺陷例图/沙眼/Image_20250612165236874.bmp')</l>
+<l>* read_image (Image6, 'E:/Detect_datasets/钽电容/new_dataset/新缺陷例图/新/Image_20250612163632305.bmp')</l>
+<l>* read_image (Image7, 'E:/Detect_datasets/钽电容/new_dataset/新缺陷例图/1分类/2.引脚不良---引脚表面灼伤/Image_20250616170126055.bmp')</l>
+<c></c>
+<c></c>
+<c>*******</c>
+<c></c>
+<l>* demo1 (Image1, DefectResult2, xlabel1, ylabel1, Area2)</l>
+<c></c>
+<l>* demo2 (Image22, Image2, DefectResult1, Row1, Col1, Row2, Col2, Area2, Area1)</l>
+<c></c>
+<l>* demo3 (Image3, SelectedRegions, Row1, Col1, Row2, Col2, Area)</l>
+<c></c>
+<l>* demo4 (Image4, SelectedRegions, Row1, Col1, Row2, Col2, Area)</l>
+<c></c>
+<l>* demo5 (Image5, SelectedRegions, Row1, Col1, Row2, Col2, Area1)</l>
+<c></c>
+<l>* demo6 (Image6, DefectResult, Row1, Col1, Row2, Col2, Area1)</l>
+<c></c>
+<l>* demo7 (Image7, SelectedRegions, Row1, Col1, Row2, Col2, Area1)</l>
+<c></c>
+<c></c>
+<c>*******</c>
+<c></c>
+<l>xlabel1 := [206, 206, 404, 430, 441, 228, 240, 439, 849, 821, 409, 206]</l>
+<l>ylabel1 := [185, 406, 393, 400, 835, 843 ,1049, 1054, 1015, 172, 158, 185]</l>
+<c></c>
+<c></c>
+<l>read_image(demo_Image, 'D:/code/dataset/Capacitor/Press_open_5/Image_20250618134049882.bmp')</l>
+<l>* read_image(demo_Image, 'D:/code/dataset/Capacitor/Press_open_5/Image_20250618135511633.bmp')</l>
+<c></c>
+<l>get_image_size (demo_Image, Width, Height)</l>
+<c></c>
+<l>gen_contour_polygon_xld (ROI_XLD, xlabel1, ylabel1)</l>
+<c></c>
+<l>gen_region_contour_xld (ROI_XLD, ROI, 'filled')</l>
+<c></c>
+<c></c>
+<c>*图像ROI进行腐蚀操作</c>
+<l>erosion_rectangle1 (ROI, RegionErosion, 35, 35)</l>
+<c></c>
+<l>reduce_domain(demo_Image, ROI, ImageROI)</l>
+<c></c>
+<l>rgb1_to_gray(ImageROI, GrayImageROI)</l>
+<l>decompose3 (ImageROI, r, g, b)</l>
+<c></c>
+<c>* *将图像转化为频域图像</c>
+<l>rft_generic (g, ImageFFT, 'to_freq', 'none', 'complex', Width)</l>
+<c>*生成一个高斯滤波核</c>
+<l>gen_gauss_filter (ImageGauss, 100, 100, 0, 'n', 'rft', Width, Height)</l>
+<c>*将频域图像核高斯滤波核进行卷积运算</c>
+<l>convol_fft (ImageFFT, ImageGauss, ImageConvol)</l>
+<c>*将卷积后的图像转换为空间域图像</c>
+<l>rft_generic (ImageConvol, ImageFFT1, 'from_freq', 'none', 'byte', Width)</l>
+<c>*用缺陷图像减去背景图像(时域图像)</c>
+<l>sub_image (g, ImageFFT1, ImageSub, 2, 160)</l>
+<c></c>
+<l>smooth_image(ImageSub, SmoothImageROI, 'gauss', 1)</l>
+<c></c>
+<c>* 预处理：中值滤波降噪，去除随机噪声</c>
+<l>median_image(g, ImageMedian, 'circle', 3, 'mirrored')</l>
+<c></c>
+<l>emphasize (SmoothImageROI, EnhancedImage, 10, 10, 1)</l>
+<c></c>
+<c>* 顶帽变换增强暗裂纹（消除背景大尺度亮度）</c>
+<c>* top_hat(ImageMedian, TopHat, 'circle', 15)</c>
+<c></c>
+<c>* 灰度拉伸增强裂纹特征</c>
+<l>scale_image(EnhancedImage, ScaledImage, 2, -80)</l>
+<c></c>
+<c>* 二次平滑（去除轻微伪影）</c>
+<l>mean_image(ScaledImage, SmoothImage, 5, 5)</l>
+<c></c>
+<c></c>
+<l>calculate_lines_gauss_parameters(5, 60, Sigma, Low, High)</l>
+<l>lines_gauss (ImageSub, Lines, Sigma, Low, High, 'dark', 'true', 'gaussian', 'true')</l>
+<l>union_adjacent_contours_xld(Lines, UnionContours, 10, 1, 'attr_keep')</l>
+<l>select_shape_xld(UnionContours, LongContours, 'contlength', 'and', 30, 1000)</l>
+<c>* 显示原图</c>
+<l>dev_display(demo_Image)</l>
+<c>* 显示检测结果</c>
+<l>dev_set_line_width(2)</l>
+<l>dev_set_color('red')</l>
+<l>dev_display(LongContours)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>* Canny 边缘检测提取裂纹边缘</c>
+<l>* edges_sub_pix(EnhancedImage, Edges, 'canny', 0.5, 10, 20)</l>
+<l>* edges_image (EnhancedImage, ImaAmp, ImaDir, 'canny', 1, 'nms', 20, 40)</l>
+<c></c>
+<l>* threshold(ImaAmp, EdgeRegion, 130, 180)</l>
+<c></c>
+<l>* union_adjacent_contours_xld(EdgeRegion, UnionContours, 10, 1, 'attr_keep')</l>
+<c>* 提取边缘区域内的方向值</c>
+<l>* reduce_domain(ImaDir, CrackContours, EdgeDirectionReduced)</l>
+<c></c>
+<c>* 取出方向值</c>
+<l>* get_grayval(EdgeDirectionReduced, 512, 512, Direction)</l>
+<l>* gen_contour_region_xld(CrackContours, Contours, 'border')</l>
+<c></c>
+<c>* 每条轮廓做拟合</c>
+<l>* fit_line_contour_xld(Contours, 'tukey', -1, 2, 15, 2, RowBegin, ColBegin, RowEnd, ColEnd, Nr, Nc, Dist)</l>
+<c></c>
+<c>* 计算每条轮廓的整体方向</c>
+<l>* Angle := atan2(RowEnd - RowBegin, ColEnd - ColBegin)</l>
+<l>* pi := 3.141592653589793</l>
+<l>* AngleDeg := Angle * 180 / pi</l>
+<c></c>
+<c>* 融合断裂边缘（重要！）</c>
+<l>* union_adjacent_contours_xld(Edges, UnionContours, 10, 1, 'attr_keep')</l>
+<c></c>
+<c>* 只保留较长的裂纹线段</c>
+<l>* select_shape_xld(UnionContours, LongContours, 'contlength', 'and', 30, 1000)</l>
+<c></c>
+<c>* 进一步保留细长的裂纹特征</c>
+<l>* select_shape_xld(LongContours, CrackContours, 'anisometry', 'and', 2, 99999)</l>
+<c></c>
+<l>* connection (EdgeRegion, ConnectedRegions)</l>
+<c></c>
+<l>* area_center(ConnectedRegions, Area1, Row, Column)</l>
+<c></c>
+<c></c>
+<l>* opening_circle (EdgeRegion, RegionOpening, 6)</l>
+<l>* dev_display(RegionOpening)</l>
+<c></c>
+<c></c>
+<c>* 显示原图</c>
+<l>* dev_display(demo_Image)</l>
+<c>* 显示检测结果</c>
+<l>* dev_set_line_width(2)</l>
+<l>* dev_set_color('red')</l>
+<l>* dev_display(LongContours)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="demo1">
+<interface>
+<io>
+<par name="Image1" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="DefectResult2" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="xlabel" base_type="ctrl" dimension="0"/>
+<par name="ylabel" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="Area2" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* 获取图像尺寸</c>
+<l>get_image_size(Image1, Width, Height)</l>
+<c></c>
+<c></c>
+<c>*创建一个新窗口</c>
+<l>dev_open_window_fit_image (Image1, 0, 0, Width, Height, WindowHandle)</l>
+<c></c>
+<c>*设置字体信息:字体大小为16，字体为mono,粗体，斜体</c>
+<l>set_display_font (WindowHandle, 100, 'mono', 'true', 'false')</l>
+<c></c>
+<c></c>
+<l>gen_contour_polygon_xld (ROI_XLD, xlabel, ylabel)</l>
+<c></c>
+<l>gen_region_contour_xld (ROI_XLD, ROI, 'filled')</l>
+<c></c>
+<l>reduce_domain(Image1, ROI, ImageROI)</l>
+<c></c>
+<c></c>
+<c>* 分解RGB通道并转换为灰度图</c>
+<l>decompose3(ImageROI, R, G, B)</l>
+<l>rgb1_to_gray(ImageROI, GrayImage)</l>
+<c></c>
+<c></c>
+<l>sub_image (R, G, ImageSub, 1, 128)</l>
+<c></c>
+<l>smooth_image(R, SmoothedImage, 'gauss', 3)</l>
+<c></c>
+<c>* 灰度增强</c>
+<l>scale_image(SmoothedImage, EnhancedImageROI, 2, -100)</l>
+<c></c>
+<c>* 阈值处理提取疑似缺陷</c>
+<l>threshold(EnhancedImageROI, DefectRegion, 0, 50)</l>
+<c></c>
+<c></c>
+<c>* 连通区域分析</c>
+<l>* connection(DefectRegion, ConnectedRegions)</l>
+<l>* select_shape(ConnectedRegions, SelectedRegions, 'area', 'and', 2000, 5000)</l>
+<c></c>
+<c></c>
+<c>* 7. 面积过滤（初筛）</c>
+<l>select_shape(DefectRegion, DefectResult2, 'area', 'and', 0, 99999999)</l>
+<c></c>
+<c>* 8. 计算面积与中心</c>
+<l>area_center(DefectResult2, Area2, Row, Column)</l>
+<c></c>
+<c>* 显示原图</c>
+<l>dev_display(Image1)</l>
+<c></c>
+<c>* 显示筛选后的缺陷区域（满足面积条件）</c>
+<l>dev_set_color('red')</l>
+<l>dev_display(DefectRegion)</l>
+<l>return ()</l>
+</body>
+<docu id="demo1">
+<parameters>
+<parameter id="Area2"/>
+<parameter id="DefectResult2"/>
+<parameter id="Image1"/>
+<parameter id="xlabel"/>
+<parameter id="ylabel"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="demo2">
+<interface>
+<io>
+<par name="Image22" base_type="iconic" dimension="0"/>
+<par name="Image2" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="DefectResult1" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="Row1" base_type="ctrl" dimension="0"/>
+<par name="Col1" base_type="ctrl" dimension="0"/>
+<par name="Row2" base_type="ctrl" dimension="0"/>
+<par name="Col2" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="Area2" base_type="ctrl" dimension="0"/>
+<par name="Area1" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>Col1Out := Col1</l>
+<l>Col2Out := Col2</l>
+<l>Row1Out := Row1</l>
+<l>Row2Out := Row2</l>
+<c>* 1. 读取图像并转换为灰度图</c>
+<l>rgb1_to_gray (Image22, GrayImage)</l>
+<c></c>
+<c>* 2. 定义 ROI 区域，裁剪图像</c>
+<l>gen_rectangle1(ROI, 160, 280, 810, 1200)</l>
+<l>reduce_domain(Image22, ROI, ImageROI)</l>
+<l>rgb1_to_gray(ImageROI, GrayImageROI)</l>
+<c></c>
+<c>* 3. 平滑图像</c>
+<l>smooth_image(GrayImageROI, SmoothImageROI, 'gauss', 2)</l>
+<c></c>
+<c>* 4. 灰度增强（线性映射）</c>
+<l>scale_image(SmoothImageROI, EnhancedImageROI, 2, -128)</l>
+<c></c>
+<c>* 5. 阈值处理提取疑似缺陷</c>
+<l>threshold(EnhancedImageROI, DefectRegion, 0, 50)</l>
+<c></c>
+<c>* 6. 连通区域分析</c>
+<l>connection(DefectRegion, ConnectedRegions)</l>
+<c></c>
+<c>* 7. 面积过滤（初筛）</c>
+<l>select_shape(DefectRegion, DefectResult2, 'area', 'and', 0, 90000)</l>
+<c></c>
+<c>* 8. 计算面积与中心</c>
+<l>area_center(DefectResult2, Area2, Row, Column)</l>
+<c></c>
+<c></c>
+<c>* 1. 读取图像并转换为灰度图</c>
+<c></c>
+<l>get_image_size (Image2, Width, Height)</l>
+<c></c>
+<c></c>
+<c>*创建一个新窗口</c>
+<l>dev_open_window_fit_image (Image2, 0, 0, Width, Height, WindowHandle)</l>
+<c></c>
+<c>*设置字体信息:字体大小为16，字体为mono,粗体，斜体</c>
+<l>set_display_font (WindowHandle, 100, 'mono', 'true', 'false')</l>
+<c></c>
+<c>* 2. 定义 ROI 区域，裁剪图像</c>
+<l>gen_rectangle1 (ROI, Row1Out, Col1Out, Row2Out, Col2Out)</l>
+<l>reduce_domain(Image2, ROI, ImageROI)</l>
+<c></c>
+<c></c>
+<l>decompose3 (ImageROI, r, g, b)</l>
+<l>rgb1_to_gray(ImageROI, GrayImageROI)</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* 3. 平滑图像</c>
+<l>smooth_image(GrayImageROI, SmoothImageROI, 'gauss', 2)</l>
+<c></c>
+<c>* 4. 灰度增强（线性映射）</c>
+<l>scale_image(SmoothImageROI, EnhancedImageROI, 2, -120)</l>
+<c></c>
+<c>* 5. 阈值处理提取疑似缺陷</c>
+<l>threshold(EnhancedImageROI, DefectRegion, 0, 40)</l>
+<c></c>
+<c>* 6. 连通区域分析</c>
+<l>* connection(DefectRegion, ConnectedRegions)</l>
+<c></c>
+<c>* 7. 面积过滤（初筛）</c>
+<l>select_shape(DefectRegion, DefectResult1, 'area', 'and', 0, 90000)</l>
+<c></c>
+<c>* 8. 计算面积与中心</c>
+<l>area_center(DefectResult1, Area1, Row, Column)</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* 9. 对面积大于 5000 的区域标注为 NG</c>
+<l>* count_obj(DefectResult1, Num)</l>
+<l>* for Index := 1 to Num by 1</l>
+<l>*     select_obj(DefectResult1, SingleRegion, Index)</l>
+<l>*     area_center(SingleRegion, A, R, C)</l>
+<l>*     if (A &gt; 5000)</l>
+<l>*         smallest_rectangle1 (SingleRegion, Row1Out, Col1Out, Row2Out, Col2Out)</l>
+<l>*         gen_rectangle1 (Rect, Row1Out, Col1Out, Row2Out, Col2Out)</l>
+<l>*         dev_set_color('red')</l>
+<l>*         dev_display(Rect)</l>
+<l>*     endif</l>
+<l>* endfor</l>
+<c></c>
+<c>* 10. 显示最终结果</c>
+<c></c>
+<l>dev_display(DefectResult1)</l>
+<c></c>
+<c></c>
+<c></c>
+<l>if( (Area1 - Area2)  &gt; 3000)</l>
+<c>    *显示产品NG</c>
+<l>    disp_message (WindowHandle, 'NG', 'window', 24, 12, 'black', 'true')</l>
+<l>else</l>
+<c>    *显示产品OK</c>
+<l>    disp_message (WindowHandle, 'OK', 'window', 24, 12, 'black', 'true')</l>
+<l>endif</l>
+<c></c>
+<l>return ()</l>
+</body>
+<docu id="demo2">
+<parameters>
+<parameter id="Area1"/>
+<parameter id="Area2"/>
+<parameter id="Col1"/>
+<parameter id="Col2"/>
+<parameter id="DefectResult1"/>
+<parameter id="Image2"/>
+<parameter id="Image22"/>
+<parameter id="Row1"/>
+<parameter id="Row2"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="demo3">
+<interface>
+<io>
+<par name="Image3" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="SelectedRegions" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="Row1" base_type="ctrl" dimension="0"/>
+<par name="Col1" base_type="ctrl" dimension="0"/>
+<par name="Row2" base_type="ctrl" dimension="0"/>
+<par name="Col2" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="Area" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* 1. 读取图像并转换为灰度图</c>
+<l>gen_rectangle1(ROI, Row1, Col1, Row2, Col2)</l>
+<l>reduce_domain(Image3, ROI, ImageROI)</l>
+<c></c>
+<l>decompose3 (ImageROI, R, G, B)</l>
+<l>rgb1_to_gray (ImageROI, GrayImage)</l>
+<c></c>
+<c></c>
+<l>smooth_image(G, SmoothImageROI, 'gauss', 2)</l>
+<c></c>
+<c></c>
+<l>scale_image(SmoothImageROI, EnhancedImageROI, 2, -60)</l>
+<c></c>
+<c></c>
+<l>threshold(EnhancedImageROI, DefectRegion, 0, 20)</l>
+<c></c>
+<l>connection(DefectRegion, ConnectedRegions) </l>
+<c></c>
+<l>area_center(ConnectedRegions, Area, Row, Column)</l>
+<c></c>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 2000, 5000)</l>
+<c></c>
+<c>* 显示原图</c>
+<l>dev_display(Image3)</l>
+<c></c>
+<c>* 显示筛选后的缺陷区域（满足面积条件）</c>
+<l>dev_set_color('red')</l>
+<l>dev_display(SelectedRegions)</l>
+<l>return ()</l>
+</body>
+<docu id="demo3">
+<parameters>
+<parameter id="Area"/>
+<parameter id="Col1"/>
+<parameter id="Col2"/>
+<parameter id="Image3"/>
+<parameter id="Row1"/>
+<parameter id="Row2"/>
+<parameter id="SelectedRegions"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="demo4">
+<interface>
+<io>
+<par name="Image4" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="SelectedRegions" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="Row1" base_type="ctrl" dimension="0"/>
+<par name="Col1" base_type="ctrl" dimension="0"/>
+<par name="Row2" base_type="ctrl" dimension="0"/>
+<par name="Col2" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="Area" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>decompose3 (Image4, R, G, B)</l>
+<c></c>
+<l>rgb1_to_gray (Image4, GrayImage)</l>
+<c></c>
+<c>* 2. 定义 ROI 区域，裁剪图像</c>
+<c></c>
+<l>gen_rectangle1(B, Row1, Col1, Row2, Col2)</l>
+<l>reduce_domain(Image4, B, ImageROI)</l>
+<l>rgb1_to_gray(ImageROI, GrayImageROI)</l>
+<l>decompose3 (ImageROI, R, G, B)</l>
+<c></c>
+<c>*均值滤波</c>
+<l>* mean_image (GrayImageROI, ImageMean, 200, 3) </l>
+<c></c>
+<c>*局部阈值,分割出前景</c>
+<l>* dyn_threshold (GrayImageROI, ImageMean, RegionDynThresh, 7, 'light') </l>
+<c></c>
+<c>* 3. 平滑图像</c>
+<l>smooth_image(B, SmoothImageROI, 'gauss', 2)</l>
+<c></c>
+<c>* 4. 灰度增强（线性映射）</c>
+<l>scale_image(SmoothImageROI, EnhancedImageROI, 2, -100)</l>
+<c></c>
+<l>threshold(EnhancedImageROI, DefectRegion, 60, 90)</l>
+<c></c>
+<l>connection(DefectRegion, ConnectedRegions) </l>
+<c></c>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 400, 1000)</l>
+<c></c>
+<c></c>
+<c>* 显示原图</c>
+<l>dev_display(Image4)</l>
+<c></c>
+<c>* 显示筛选后的缺陷区域（满足面积条件）</c>
+<l>dev_set_color('red')</l>
+<l>dev_display(SelectedRegions)</l>
+<c></c>
+<c></c>
+<c>* 7. 打开新窗口显示阈值图像（增强图像），并设置字体</c>
+<l>get_image_size(EnhancedImageROI, Width, Height)</l>
+<l>dev_close_window()</l>
+<l>dev_open_window_fit_image(EnhancedImageROI, 0, 0, Width, Height, WindowHandle)</l>
+<l>dev_set_window(WindowHandle)</l>
+<l>set_display_font(WindowHandle, 20, 'mono', 'true', 'false')</l>
+<c></c>
+<c>* 8. 显示增强图像作为背景</c>
+<l>dev_display(EnhancedImageROI)</l>
+<c></c>
+<c>* 9. 遍历每个连通区域，显示轮廓和面积</c>
+<l>count_obj(ConnectedRegions, Num)</l>
+<l>for Index := 1 to Num by 1</l>
+<l>    select_obj(ConnectedRegions, SingleRegion, Index)</l>
+<l>    area_center(SingleRegion, Area, Row, Column)</l>
+<c></c>
+<c>    * 显示轮廓</c>
+<l>    dev_set_color('green')</l>
+<l>    dev_display(SingleRegion)</l>
+<c></c>
+<c>    * 显示面积（单位像素²）</c>
+<l>    Text := 'Area: ' + Area$'.0f'</l>
+<l>    disp_message(WindowHandle, Text, 'image', Row, Column, 'white', 'false')</l>
+<l>endfor</l>
+<c></c>
+<c></c>
+<l>return ()</l>
+</body>
+<docu id="demo4">
+<parameters>
+<parameter id="Area"/>
+<parameter id="Col1"/>
+<parameter id="Col2"/>
+<parameter id="Image4"/>
+<parameter id="Row1"/>
+<parameter id="Row2"/>
+<parameter id="SelectedRegions"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="demo5">
+<interface>
+<io>
+<par name="Image5" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="SelectedRegions" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="Row1" base_type="ctrl" dimension="0"/>
+<par name="Col1" base_type="ctrl" dimension="0"/>
+<par name="Row2" base_type="ctrl" dimension="0"/>
+<par name="Col2" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="Area1" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* 获取图像尺寸</c>
+<l>get_image_size(Image5, Width, Height)</l>
+<c></c>
+<c></c>
+<c>*创建一个新窗口</c>
+<l>dev_open_window_fit_image (Image5, 0, 0, Width, Height, WindowHandle)</l>
+<c></c>
+<c>*设置字体信息:字体大小为16，字体为mono,粗体，斜体</c>
+<l>set_display_font (WindowHandle, 100, 'mono', 'true', 'false')</l>
+<c></c>
+<c>* 定义ROI区域</c>
+<l>gen_rectangle1(ROI, Row1, Col1, Row2, Col2)</l>
+<l>reduce_domain(Image5, ROI, ImageROI)</l>
+<c></c>
+<c>* 分解RGB通道并转换为灰度图</c>
+<l>decompose3(ImageROI, R, G, B)</l>
+<l>rgb1_to_gray(ImageROI, GrayImage)</l>
+<c></c>
+<c></c>
+<l>* sub_image (R, G, ImageSub, 1, 128)</l>
+<c></c>
+<c>* 图像预</c>
+<l>smooth_image(G, SmoothedImage, 'gauss', 3)</l>
+<c></c>
+<c>* 灰度增强</c>
+<l>scale_image(SmoothedImage, EnhancedImageROI, 2, -100)</l>
+<c></c>
+<c>* 阈值处理提取疑似缺陷</c>
+<l>threshold(EnhancedImageROI, DefectRegion, 0, 30)</l>
+<c></c>
+<c></c>
+<c>* 连通区域分析</c>
+<l>connection(DefectRegion, ConnectedRegions)</l>
+<l>select_shape(ConnectedRegions, SelectedRegions, 'area', 'and', 0, 99999)</l>
+<c></c>
+<l>area_center(SelectedRegions, Area1, Row, Column)</l>
+<c></c>
+<c></c>
+<c>* 显示原图</c>
+<l>dev_display(Image5)</l>
+<c></c>
+<c>* 显示筛选后的缺陷区域（满足面积条件）</c>
+<l>dev_set_color('red')</l>
+<l>dev_display(DefectRegion)</l>
+<l>return ()</l>
+</body>
+<docu id="demo5">
+<parameters>
+<parameter id="Area1"/>
+<parameter id="Col1"/>
+<parameter id="Col2"/>
+<parameter id="Image5"/>
+<parameter id="Row1"/>
+<parameter id="Row2"/>
+<parameter id="SelectedRegions"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="demo6">
+<interface>
+<io>
+<par name="Image6" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="DefectResult" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="Row1" base_type="ctrl" dimension="0"/>
+<par name="Col1" base_type="ctrl" dimension="0"/>
+<par name="Row2" base_type="ctrl" dimension="0"/>
+<par name="Col2" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="Area1" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>get_image_size (Image6, Width, Height)</l>
+<c></c>
+<c>*创建一个新窗口</c>
+<l>dev_open_window_fit_image (Image6, 0, 0, Width, Height, WindowHandle)</l>
+<c></c>
+<c>*设置字体信息:字体大小为16，字体为mono,粗体，斜体</c>
+<l>set_display_font (WindowHandle, 100, 'mono', 'true', 'false')</l>
+<c></c>
+<c></c>
+<l>rgb1_to_gray (Image6, GrayImage)</l>
+<l>decompose3(Image6, r, g, b)</l>
+<c>* 2. 定义 ROI 区域，裁剪图像</c>
+<l>gen_rectangle1(ROI, Row1, Col1, Row2, Col2)</l>
+<l>reduce_domain(Image6, ROI, ImageROI)</l>
+<l>rgb1_to_gray(ImageROI, GrayImageROI)</l>
+<c></c>
+<c>* 3. 平滑图像</c>
+<l>smooth_image(GrayImageROI, SmoothImageROI, 'gauss', 2)</l>
+<c></c>
+<c>* 4. 灰度增强（线性映射）</c>
+<l>scale_image(SmoothImageROI, EnhancedImageROI, 2, -80)</l>
+<c></c>
+<c>* 5. 阈值处理提取疑似缺陷</c>
+<l>threshold(EnhancedImageROI, DefectRegion, 0, 20)</l>
+<c></c>
+<c>* 8. 计算面积与中心</c>
+<l>area_center(DefectRegion, Area1, Row, Column)</l>
+<c></c>
+<c>* 6. 连通区域分析</c>
+<l>connection(DefectRegion, ConnectedRegions)</l>
+<c></c>
+<c>* 7. 面积过滤（初筛）</c>
+<l>select_shape(ConnectedRegions, DefectResult, 'area', 'and', 0, 9999999999)</l>
+<l>return ()</l>
+</body>
+<docu id="demo6">
+<parameters>
+<parameter id="Area1"/>
+<parameter id="Col1"/>
+<parameter id="Col2"/>
+<parameter id="DefectResult"/>
+<parameter id="Image6"/>
+<parameter id="Row1"/>
+<parameter id="Row2"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="demo7">
+<interface>
+<io>
+<par name="Image7" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="SelectedRegions" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="Row1" base_type="ctrl" dimension="0"/>
+<par name="Col1" base_type="ctrl" dimension="0"/>
+<par name="Row2" base_type="ctrl" dimension="0"/>
+<par name="Col2" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="Area1" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* 获取图像尺寸</c>
+<l>get_image_size(Image7, Width, Height)</l>
+<c></c>
+<c>*创建一个新窗口</c>
+<l>dev_open_window_fit_image (Image7, 0, 0, Width, Height, WindowHandle)</l>
+<c></c>
+<c>*设置字体信息:字体大小为16，字体为mono,粗体，斜体</c>
+<l>set_display_font (WindowHandle, 100, 'mono', 'true', 'false')</l>
+<c></c>
+<c>* 定义ROI区域</c>
+<l>gen_rectangle1(ROI, Row1, Col1, Row2, Col2)</l>
+<l>reduce_domain(Image7, ROI, ImageROI)</l>
+<c></c>
+<c>* 分解RGB通道并转换为灰度图</c>
+<l>decompose3(ImageROI, R, G, B)</l>
+<l>rgb1_to_gray(ImageROI, GrayImage)</l>
+<c></c>
+<c></c>
+<l>* sub_image (R, G, ImageSub, 1, 128)</l>
+<c></c>
+<c>* 图像预</c>
+<l>smooth_image(G, SmoothedImage, 'gauss', 3)</l>
+<c></c>
+<c>* 灰度增强</c>
+<l>scale_image(SmoothedImage, EnhancedImageROI, 2, -110)</l>
+<c></c>
+<c>* 阈值处理提取疑似缺陷</c>
+<l>threshold(EnhancedImageROI, DefectRegion, 0, 40)</l>
+<c></c>
+<l>area_center(DefectRegion, Area1, Row, Column)</l>
+<c></c>
+<c></c>
+<c>* 连通区域分析</c>
+<l>connection(DefectRegion, ConnectedRegions)</l>
+<l>select_shape(ConnectedRegions, SelectedRegions, 'area', 'and', 2000, 5000)</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* 显示原图</c>
+<l>dev_display(Image7)</l>
+<c></c>
+<c>* 显示筛选后的缺陷区域（满足面积条件）</c>
+<l>dev_set_color('red')</l>
+<l>dev_display(DefectRegion)</l>
+<l>return ()</l>
+</body>
+<docu id="demo7">
+<parameters>
+<parameter id="Area1"/>
+<parameter id="Col1"/>
+<parameter id="Col2"/>
+<parameter id="Image7"/>
+<parameter id="Row1"/>
+<parameter id="Row2"/>
+<parameter id="SelectedRegions"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

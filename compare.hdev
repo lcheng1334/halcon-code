@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.11.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<c>*读图</c>
+<l>path:='f:/desktop/采集2'</l>
+<l>list_files (path, ['files','follow_links','recursive'], ImageFiles)</l>
+<l>tuple_regexp_select (ImageFiles, ['\\.(tif|tiff|gif|bmp|jpg|jpeg|jp2|png|pcx|pgm|ppm|pbm|xwd|ima|hobj)$','ignore_case'], ImageFiles)</l>
+<l>read_image (Image1,ImageFiles[|ImageFiles|-1])</l>
+<l>read_image (Resize, 'f:/desktop/23.bmp')</l>
+<l>* dev_get_window (WindowHandle)</l>
+<c></c>
+<l>* mean_image (Image1, ImageMean, 9, 9)</l>
+<c></c>
+<l>rgb1_to_gray (Image1, GrayImage)</l>
+<l>decompose3 (Image1, r, g, b)</l>
+<l>* trans_from_rgb (r, r, r, ImageResult1, ImageResult2, ImageResult3, 'hsv')</l>
+<l>* scale_image (r, r, 0.5, 0)</l>
+<l>* scale_image (b, b, 0.5, 0)</l>
+<c></c>
+<c></c>
+<l>rgb1_to_gray (Resize, GrayImage1)</l>
+<l>decompose3 (Resize, r1, g1, b1)</l>
+<l>dev_clear_window ()</l>
+<c></c>
+<c></c>
+<l>compose3 (r, r, r, r)</l>
+<l>compose3 (g, g, g, g)</l>
+<l>compose3 (b, b, b, b)</l>
+<c></c>
+<l>compose3 (r1, r1, r1, r1)</l>
+<l>compose3 (g1, g1, g1, g1)</l>
+<l>compose3 (b1, b1, b1, b1)</l>
+<c></c>
+<c></c>
+<l>gen_empty_obj (imgs)</l>
+<c></c>
+<l>* for Index := 1 to 1 by 1</l>
+<c></c>
+<l>    concat_obj (imgs, Image1, imgs)</l>
+<l>    concat_obj (imgs, r, imgs)</l>
+<l>    concat_obj (imgs, g, imgs)</l>
+<l>    concat_obj (imgs, b, imgs)</l>
+<c>    </c>
+<c>    </c>
+<l>    concat_obj (imgs, Resize, imgs)</l>
+<l>    concat_obj (imgs, r1, imgs)</l>
+<l>    concat_obj (imgs, g1, imgs)</l>
+<l>    concat_obj (imgs, b1, imgs)</l>
+<c></c>
+<l>* endfor</l>
+<c></c>
+<c></c>
+<l>tile_images (imgs, TiledImage,4, 'horizontal')</l>
+<c></c>
+<l>dev_clear_window ()</l>
+<l>dev_display (TiledImage)</l>
+<c></c>
+<l>* set_display_font (WindowHandle, 50, 'mono', 'true', 'false')</l>
+<l>* disp_message (WindowHandle, '图像', 'window', 0, 0, 'black', 'false')</l>
+<l>* disp_message (WindowHandle, 'R', 'window', 0, 500, 'red', 'false')</l>
+<l>* disp_message (WindowHandle, 'G', 'window', 0, 1000, 'green', 'false')</l>
+<l>* disp_message (WindowHandle, 'B', 'window', 0, 1500, 'blue', 'false')</l>
+<c></c>
+<l>* disp_message (WindowHandle, '对照', 'window', 450, 0, 'black', 'false')</l>
+<l>* disp_message (WindowHandle, 'R', 'window', 450, 500, 'red', 'false')</l>
+<l>* disp_message (WindowHandle, 'G', 'window', 450, 1000, 'green', 'false')</l>
+<l>* disp_message (WindowHandle, 'B', 'window', 450, 1500, 'blue', 'false')</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
