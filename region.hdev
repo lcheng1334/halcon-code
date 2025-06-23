@@ -4,55 +4,77 @@
 <interface/>
 <body>
 <c>* 设置文件夹路径</c>
-<l>FolderPath := 'D:/code/dataset/Capacitor/Crack' </l>
+<l>FolderPath := 'E:/Detect_datasets/dataset/模板' </l>
 <c></c>
-<l>list_files ('D:/code/dataset/Capacitor/Crack', ['files'], Files)</l>
+<l>list_files (FolderPath, ['files'], Files)</l>
 <l>tuple_length (Files, Length)</l>
 <c></c>
-<c>* 全部区域</c>
-<l>* for I := 0 to Length-1 by 1</l>
-<c>    </c>
-<l>* tuple_select (Files, I, ImagePath)   </l>
-<l>* read_image (Image, ImagePath)</l>
-<c>* 自动提取ROI区域</c>
-<l>* rgb1_to_gray (Image, GrayImage)</l>
-<l>* smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
-<l>* threshold (GrayImage, Regions, 0, 130)</l>
-<l>* fill_up (Regions, RegionFillUp)</l>
-<l>* closing_circle (RegionFillUp, RegionClosing, 5)</l>
-<l>* connection (RegionClosing, ConnectedRegions)</l>
-<l>* area_center (ConnectedRegions, Area, Row, Column)</l>
-<l>* select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
-<l>* reduce_domain (Image, TargetRegions, ImageROI)</l>
-<c>* 进行操作</c>
-<l>* rgb1_to_gray (ImageROI, GrayImageROI)</l>
-<l>* decompose3 (ImageROI, R, G, B)</l>
-<c>    </c>
-<l>* wait_seconds(1)</l>
-<l>* endfor</l>
-<c></c>
-<c></c>
-<c></c>
-<c>* 除极片区域</c>
 <l>for I := 0 to Length-1 by 1</l>
 <c>    </c>
 <l>tuple_select (Files, I, ImagePath)   </l>
 <l>read_image (Image, ImagePath)</l>
-<c>* 自动提取ROI区域</c>
+<c>* 自动提取全部ROI</c>
 <l>rgb1_to_gray (Image, GrayImage)</l>
 <l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
-<l>threshold (GrayImage, Regions, 0, 130)</l>
+<l>threshold (GrayImage, Regions, 0, 110)</l>
 <l>fill_up (Regions, RegionFillUp)</l>
 <l>closing_circle (RegionFillUp, RegionClosing, 5)</l>
 <l>connection (RegionClosing, ConnectedRegions)</l>
 <l>area_center (ConnectedRegions, Area, Row, Column)</l>
 <l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
 <l>reduce_domain (Image, TargetRegions, ImageROI)</l>
+<l>dev_display (Image)</l>
+<l>dev_display (TargetRegions)</l>
+<c></c>
+<c></c>
+<c></c>
+<c>* 正面打印区域</c>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
+<l>threshold (GrayImage, Regions, 0, 80)</l>
+<l>closing_circle(Regions, RegionClosing, 5)</l>
+<c></c>
+<l>fill_up (RegionClosing, RegionFillUp)</l>
+<l>connection (RegionFillUp, ConnectedRegions)</l>
+<c></c>
+<l>area_center (ConnectedRegions, Area, Row, Column)</l>
+<l>select_shape (ConnectedRegions, TargetRegions2, 'area', 'and', 20000, 999999)</l>
+<l>reduce_domain (Image, TargetRegions2, ImageROI)</l>
+<l>dev_display (Image)</l>
+<l>dev_display (TargetRegions2)</l>
+<c></c>
+<c></c>
+<c>* 正面字符区域</c>
+<l>difference (TargetRegions, TargetRegions2, RegionDifference)</l>
+<l>dev_display (Image)</l>
+<l>dev_display (RegionDifference)</l>
+<c></c>
+<c>* 极片区域</c>
+<l>* rgb1_to_gray (Image, GrayImage)</l>
+<l>* smooth_image(GrayImage, SmoothedImage, 'gauss', 8)</l>
+<l>* threshold (GrayImage, Regions, 0, 70)</l>
+<l>* closing_circle (Regions, RegionClosing, 6)</l>
+<c></c>
+<l>* fill_up (Regions, RegionFillUp)</l>
+<l>* connection (RegionFillUp, ConnectedRegions)</l>
+<l>* area_center (ConnectedRegions, Area, Row, Column)</l>
+<l>* select_shape (ConnectedRegions, TargetRegions3, 'area', 'and', 30000, 999999)</l>
+<l>* reduce_domain (Image, TargetRegions3, ImageROI)</l>
+<l>* dev_display (Image)</l>
+<l>* dev_display (TargetRegions3)</l>
+<c></c>
+<c>* 除极片区域</c>
+<l>* difference (TargetRegions, TargetRegions3, RegionDifference)</l>
+<l>* dev_display (Image)</l>
+<l>* dev_display (RegionDifference)</l>
+<c></c>
+<c></c>
+<c></c>
 <c>* 进行操作</c>
 <l>rgb1_to_gray (ImageROI, GrayImageROI)</l>
 <l>decompose3 (ImageROI, R, G, B)</l>
-<c>    </c>
-<l>wait_seconds(1)</l>
+<c></c>
+<l>wait_seconds(0.2)</l>
 <l>endfor</l>
 </body>
 <docu id="main">

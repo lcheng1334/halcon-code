@@ -11,12 +11,16 @@
 <l>get_image_size(Image, Width, Height)</l>
 <c></c>
 <c></c>
-<c>*创建一个新窗口</c>
-<l>dev_open_window_fit_image (Image, 0, 0, Width, Height, WindowHandle)</l>
-<c></c>
 <c>* 定义ROI区域</c>
-<l>gen_rectangle1(ROI, 187, 199, 830, 1003)</l>
-<l>reduce_domain(Image, ROI, ImageROI)</l>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
+<l>threshold (GrayImage, Regions, 0, 130)</l>
+<l>fill_up (Regions, RegionFillUp)</l>
+<l>closing_circle (RegionFillUp, RegionClosing, 5)</l>
+<l>connection (RegionClosing, ConnectedRegions)</l>
+<l>area_center (ConnectedRegions, Area, Row, Column)</l>
+<l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
+<l>reduce_domain (Image, TargetRegions, ImageROI)</l>
 <c></c>
 <c>* 分解RGB通道并转换为灰度图</c>
 <l>decompose3(ImageROI, R, G, B)</l>
@@ -94,7 +98,7 @@
 <c>* 连通区域分析</c>
 <l>* connection(Closed, ConnectedRegions)</l>
 <l>* select_shape(ConnectedRegions, SelectedRegions, 'area', 'and', 1000, 50000)</l>
-<l>* select_shape(SelectedRegions, FinalRegions, 'width', 'and', 1, 50)  * 限制宽度，排除大面积区域</l>
+<c>* select_shape(SelectedRegions, FinalRegions, 'width', 'and', 1, 50)  * 限制宽度，排除大面积区域</c>
 <c></c>
 <c>* 显示结果</c>
 <l>* dev_display(Image)</l>
@@ -105,8 +109,8 @@
 <l>* dev_set_color('blue')</l>
 <l>* dev_set_draw('fill')</l>
 <l>* area_rectangle1(FinalRegions, Row, Column, A, B)</l>
-<l>* dev_display([Row,Column])</l>
-<l>* dev_display([A,B])</l>
+<c>* dev_display([Row,Column])</c>
+<c>* dev_display([A,B])</c>
 <c></c>
 <c></c>
 <c></c>

@@ -4,16 +4,21 @@
 <interface/>
 <body>
 <c>* 读取图像</c>
-<l>read_image (Image, 'G:/钽电容/dataset/新缺陷例图/1分类/2.引脚不良---引脚表面灼伤/Image_20250616170126055.bmp')</l>
+<l>read_image (Image, 'G:/钽电容/孔洞/Image_20250620163401820.bmp')</l>
 <c></c>
 <c></c>
 <c>* 获取图像尺寸</c>
 <l>get_image_size(Image, Width, Height)</l>
 <c></c>
+<c></c>
+<c>*创建一个新窗口</c>
+<l>dev_open_window_fit_image (Image, 0, 0, Width, Height, WindowHandle)</l>
+<c></c>
+<c></c>
 <c>* 定义ROI区域</c>
 <l>rgb1_to_gray (Image, GrayImage)</l>
 <l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
-<l>threshold (GrayImage, Regions, 0, 110)</l>
+<l>threshold (GrayImage, Regions, 0, 130)</l>
 <l>fill_up (Regions, RegionFillUp)</l>
 <l>closing_circle (RegionFillUp, RegionClosing, 5)</l>
 <l>connection (RegionClosing, ConnectedRegions)</l>
@@ -21,9 +26,9 @@
 <l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
 <l>reduce_domain (Image, TargetRegions, ImageROI)</l>
 <c></c>
-<c>* 分解RGB通道并转换为灰度图</c>
 <l>decompose3(ImageROI, R, G, B)</l>
 <l>rgb1_to_gray(ImageROI, GrayImage)</l>
+<c></c>
 <c></c>
 <c></c>
 <l>* sub_image (R, G, ImageSub, 1, 128)</l>
@@ -32,7 +37,7 @@
 <l>smooth_image(G, SmoothedImage, 'gauss', 3)</l>
 <c></c>
 <c>* 灰度增强</c>
-<l>scale_image(SmoothedImage, EnhancedImageROI, 2, -110)</l>
+<l>scale_image(SmoothedImage, EnhancedImageROI, 2, -70)</l>
 <c></c>
 <c>* 阈值处理提取疑似缺陷</c>
 <l>threshold(EnhancedImageROI, DefectRegion, 0, 40)</l>
@@ -50,6 +55,7 @@
 <l>dev_display(DefectRegion)</l>
 <c></c>
 <c></c>
+<c>* 计算缺陷区域</c>
 </body>
 <docu id="main">
 <parameters/>

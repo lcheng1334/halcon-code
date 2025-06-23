@@ -1,2 +1,11 @@
 git config --global user.email "lcheng1334@163.com"
 git config --global user.name "lcheng1334"
+
+
+# 更新上传代码
+
+git add .
+
+git commit -m "20250623"
+
+git push origin main

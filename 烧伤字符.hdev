@@ -4,16 +4,9 @@
 <interface/>
 <body>
 <c>* 1. 读取图像并转换为灰度图</c>
-<l>read_image (Image1, 'E:/Detect_datasets/钽电容/穹顶光源/钽电容-0612/新/Image_20250612163632305.bmp')</l>
+<l>read_image (Image1, 'G:/钽电容/新/Image_20250612163632305.bmp')</l>
 <c></c>
 <l>get_image_size (Image1, Width, Height)</l>
-<c></c>
-<c></c>
-<c>*创建一个新窗口</c>
-<l>dev_open_window_fit_image (Image1, 0, 0, Width, Height, WindowHandle)</l>
-<c></c>
-<c>*设置字体信息:字体大小为16，字体为mono,粗体，斜体</c>
-<l>set_display_font (WindowHandle, 100, 'mono', 'true', 'false')</l>
 <c></c>
 <c></c>
 <l>rgb1_to_gray (Image1, GrayImage)</l>
