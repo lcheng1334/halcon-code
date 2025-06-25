@@ -4,8 +4,7 @@
 <interface/>
 <body>
 <c>* 读取图像</c>
-<l># read_image (Image, 'G:/钽电容/沙眼/Image_20250612165236874.bmp')</l>
-<l>read_image (Image, 'G:/钽电容/沙眼/Image_20250612164529200.bmp')</l>
+<l>read_image (Image, 'G:/钽电容/沙眼/Image_20250612165236874.bmp')</l>
 <c></c>
 <c></c>
 <c></c>
@@ -14,8 +13,18 @@
 <c></c>
 <c></c>
 <c>* 定义ROI区域</c>
-<l>gen_rectangle1(ROI, 240, 154, 741, 1007)</l>
-<l>reduce_domain(Image, ROI, ImageROI)</l>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
+<l>threshold (SmoothedImage, Regions, 0, 120)</l>
+<l>closing_circle (Regions, RegionClosing, 5)</l>
+<l>fill_up (RegionClosing, RegionFillUp)</l>
+<l>connection (RegionFillUp, ConnectedRegions)</l>
+<l>area_center (ConnectedRegions, Area, Row, Column)</l>
+<l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
+<l>reduce_domain (Image, TargetRegions, ImageROI)</l>
+<l>dev_display (Image)</l>
+<l>dev_display (TargetRegions)</l>
+<c></c>
 <c></c>
 <c>* 分解RGB通道并转换为灰度图</c>
 <l>decompose3(ImageROI, R, G, B)</l>

@@ -16,10 +16,10 @@
 <c>* 自动提取全部ROI</c>
 <l>rgb1_to_gray (Image, GrayImage)</l>
 <l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
-<l>threshold (GrayImage, Regions, 0, 110)</l>
-<l>fill_up (Regions, RegionFillUp)</l>
-<l>closing_circle (RegionFillUp, RegionClosing, 5)</l>
-<l>connection (RegionClosing, ConnectedRegions)</l>
+<l>threshold (SmoothedImage, Regions, 0, 110)</l>
+<l>closing_circle (Regions, RegionClosing, 5)</l>
+<l>fill_up (RegionClosing, RegionFillUp)</l>
+<l>connection (RegionFillUp, ConnectedRegions)</l>
 <l>area_center (ConnectedRegions, Area, Row, Column)</l>
 <l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
 <l>reduce_domain (Image, TargetRegions, ImageROI)</l>
@@ -31,9 +31,8 @@
 <c>* 正面打印区域</c>
 <l>rgb1_to_gray (Image, GrayImage)</l>
 <l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
-<l>threshold (GrayImage, Regions, 0, 80)</l>
+<l>threshold (SmoothedImage, Regions, 0, 80)</l>
 <l>closing_circle(Regions, RegionClosing, 5)</l>
-<c></c>
 <l>fill_up (RegionClosing, RegionFillUp)</l>
 <l>connection (RegionFillUp, ConnectedRegions)</l>
 <c></c>
@@ -52,7 +51,7 @@
 <c>* 极片区域</c>
 <l>* rgb1_to_gray (Image, GrayImage)</l>
 <l>* smooth_image(GrayImage, SmoothedImage, 'gauss', 8)</l>
-<l>* threshold (GrayImage, Regions, 0, 70)</l>
+<l>* threshold (SmoothedImage, Regions, 0, 70)</l>
 <l>* closing_circle (Regions, RegionClosing, 6)</l>
 <c></c>
 <l>* fill_up (Regions, RegionFillUp)</l>

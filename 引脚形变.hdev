@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image(Image, 'G:/钽电容/dataset/引脚形变/侧面/Image_20250620161218940.bmp')</l>
+<c></c>
+<l>rgb1_to_gray(Image, GrayImage)</l>
+<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
+<l>threshold(SmoothedImage, Regions, 0, 120)</l>
+<l>closing_circle(Regions, RegionClosing, 5)</l>
+<l>fill_up(RegionClosing, RegionFillUp)</l>
+<l>connection(RegionFillUp, ConnectedRegions)</l>
+<l>area_center(ConnectedRegions, Area, Row, Column)</l>
+<l>select_shape(ConnectedRegions, TargetRegions1, 'area', 'and', 200000, 999999)</l>
+<l>gen_contour_region_xld(TargetRegions1, Abnormal_contour, 'border')</l>
+<l>smooth_contours_xld(Abnormal_contour, SmoothedAbnormal, 3)  </l>
+<l>Abnormal_contour := SmoothedAbnormal</l>
+<l>reduce_domain(Image, TargetRegions1, Abnormal_roi)</l>
+<l>dev_display(Image)</l>
+<l>dev_display(TargetRegions1)</l>
+<c></c>
+<l>read_image(Image_template, 'G:/钽电容/dataset/六面体图/上下底面/Image_20250618113619057.bmp')</l>
+<c></c>
+<l>rgb1_to_gray(Image_template, GrayImage)</l>
+<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
+<l>threshold(SmoothedImage, Regions, 0, 120)</l>
+<l>closing_circle(Regions, RegionClosing, 5)</l>
+<l>fill_up(RegionClosing, RegionFillUp)</l>
+<l>connection(RegionFillUp, ConnectedRegions)</l>
+<l>area_center(ConnectedRegions, Area, Row, Column)</l>
+<l>select_shape(ConnectedRegions, TargetRegions2, 'area', 'and', 200000, 999999)</l>
+<l>reduce_domain(Image, TargetRegions2, ImageROI2)</l>
+<l>dev_display(Image)</l>
+<l>dev_display(TargetRegions2)</l>
+<l>gen_contour_region_xld(TargetRegions2, Normal_contour, 'border_holes')</l>
+<l>smooth_contours_xld(Normal_contour, SmoothedNormal, 3)  </l>
+<l>Normal_contour := SmoothedNormal</l>
+<l>reduce_domain(Image_template, TargetRegions2, Normal_roi)</l>
+<c></c>
+<c>* 测试</c>
+<l>rgb1_to_gray(Normal_roi, Normal_GrayImage)</l>
+<l>rgb1_to_gray(Abnormal_roi, Abnormal_GrayImage)</l>
+<c></c>
+<l>fit_line_contour_xld(Abnormal_contour, 'tukey', -1, 0, 5, 2, RowBegin1, ColBegin1, RowEnd1, ColEnd1, Nr1, Nc1, Abnormal_angle)</l>
+<l>fit_line_contour_xld(Normal_contour, 'tukey', -1, 0, 5, 2, RowBegin, ColBegin, RowEnd, ColEnd, Nr, Nc, Normal_angle)</l>
+<l>AngleDiff := abs(Abnormal_angle - Normal_angle)  </l>
+<l>if (AngleDiff &gt; 2.0)  </l>
+<l>    dev_set_color('red')</l>
+<l>    dev_display(Abnormal_contour)</l>
+<l>*     write_string(0, '异常（翘起）')</l>
+<l>*     write_string (0, 'hello')</l>
+<l>else</l>
+<l>*     write_string(0, '正常')</l>
+<l>    dev_display(Normal_contour)</l>
+<l>endif</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

@@ -4,16 +4,24 @@
 <interface/>
 <body>
 <c>* 1. 读取图像并转换为灰度图</c>
-<l>read_image (Image1, 'G:/钽电容/新/Image_20250612163632305.bmp')</l>
+<l>read_image (Image, 'G:/钽电容/新/Image_20250612163632305.bmp')</l>
 <c></c>
-<l>get_image_size (Image1, Width, Height)</l>
+<l>get_image_size (Image, Width, Height)</l>
 <c></c>
 <c></c>
-<l>rgb1_to_gray (Image1, GrayImage)</l>
-<l>decompose3(Image1, r, g, b)</l>
 <c>* 2. 定义 ROI 区域，裁剪图像</c>
-<l>gen_rectangle1(ROI, 128, 110, 720, 1110)</l>
-<l>reduce_domain(Image1, ROI, ImageROI)</l>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
+<l>threshold (SmoothedImage, Regions, 0, 110)</l>
+<l>closing_circle (Regions, RegionClosing, 5)</l>
+<l>fill_up (RegionClosing, RegionFillUp)</l>
+<l>connection (RegionFillUp, ConnectedRegions)</l>
+<l>area_center (ConnectedRegions, Area, Row, Column)</l>
+<l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
+<l>reduce_domain (Image, TargetRegions, ImageROI)</l>
+<l>dev_display (Image)</l>
+<l>dev_display (TargetRegions)</l>
+<c></c>
 <l>rgb1_to_gray(ImageROI, GrayImageROI)</l>
 <c></c>
 <c>* 3. 平滑图像</c>

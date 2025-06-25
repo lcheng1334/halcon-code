@@ -57,8 +57,8 @@
 <l>ylabel1 := [185, 406, 393, 400, 835, 843 ,1049, 1054, 1015, 172, 158, 185]</l>
 <c></c>
 <c></c>
-<l>read_image(demo_Image, 'D:/code/dataset/Capacitor/Press_open_5/Image_20250618134049882.bmp')</l>
-<l>* read_image(demo_Image, 'D:/code/dataset/Capacitor/Press_open_5/Image_20250618135511633.bmp')</l>
+<l>read_image(demo_Image, 'G:/钽电容/dataset/暗裂纹/Capacitor/Press_open_5/Image_20250618134049882.bmp')</l>
+<l>* read_image(demo_Image, 'G:/钽电容/dataset/暗裂纹/Capacitor/Press_open_5/Image_20250618135511633.bmp')</l>
 <c></c>
 <l>get_image_size (demo_Image, Width, Height)</l>
 <c></c>

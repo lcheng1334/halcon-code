@@ -3,144 +3,104 @@
 <procedure name="main">
 <interface/>
 <body>
-<c>* 1. 读取图像并转换为灰度图</c>
-<l>read_image (Image1, 'D:/code/dataset/Capacitor/Press_open_5/Image_20250618135511633.bmp')</l>
-<l>decompose3 (Image1, R, G, B)</l>
-<l>rgb1_to_gray (Image1, GrayImage)</l>
+<c>* 设置文件夹路径</c>
+<l>FolderPath := 'G:/钽电容/dataset/引脚形变/侧面' </l>
 <c></c>
+<l>list_files (FolderPath, ['files'], Files)</l>
+<l>tuple_length (Files, Length)</l>
 <c></c>
-<c>* 2. 定义 ROI 区域，裁剪图像</c>
-<c>*使用自动阈值分割图像前景区域</c>
-<l>* bin_threshold (Image1, ROI)</l>
+<c>* 初始化结果列表</c>
+<l>AngleList := []</l>
+<l>Normal_angleList := []</l>
 <c></c>
-<l>gen_rectangle1(G, 180, 122, 830, 1218)</l>
-<l>reduce_domain(Image1, G, ImageROI)</l>
-<l>rgb1_to_gray(ImageROI, GrayImageROI)</l>
-<l>decompose3 (ImageROI, r, g, b)</l>
+<l>for I := 0 to Length-1 by 1</l>
 <c></c>
+<l>    tuple_select (Files, I, ImagePath)   </l>
+<l>    read_image (Image, ImagePath)</l>
+<l>    rgb1_to_gray(Image, GrayImage)</l>
+<l>    smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
+<l>    threshold(SmoothedImage, Regions, 0, 120)</l>
+<l>    closing_circle(Regions, RegionClosing, 5)</l>
+<l>    fill_up(RegionClosing, RegionFillUp)</l>
+<l>    connection(RegionFillUp, ConnectedRegions)</l>
+<l>    area_center(ConnectedRegions, Area, Row, Column)</l>
+<l>    select_shape(ConnectedRegions, TargetRegions2, 'area', 'and', 200000, 999999)</l>
+<l>    reduce_domain(Image, TargetRegions2, ImageROI2)</l>
 <c></c>
+<l>    gen_contour_region_xld(TargetRegions2, Normal_contour, 'border_holes')</l>
+<l>    smooth_contours_xld(Normal_contour, SmoothedNormal, 5)  </l>
+<l>    Normal_contour := SmoothedNormal</l>
+<c>    </c>
+<l>    dev_display(Image)</l>
+<l>    dev_display(Normal_contour)</l>
+<c>    </c>
+<c>    * 测试</c>
+<l>    fit_line_contour_xld(Normal_contour, 'tukey', -1, 0, 5, 2, RowBegin1, ColBegin1, RowEnd1, ColEnd1, Nr1, Nc1, Normal_angle)</l>
+<l>    tuple_concat(Normal_angleList, Normal_angle, Normal_angleList)</l>
+<c>    * 这里的 Normal_angle 应该改成计算角度：</c>
+<l>    Angle := atan2(-Nr1, Nc1) * 180 / 3.14</l>
 <c></c>
-<l>* gen_contour_polygon_xld (ROI_XLD, [242, 242, 824, 828, 242], [144, 322, 342, 180, 144])</l>
+<c>    * 每次把 Angle 累积加入列表</c>
+<l>    tuple_concat(AngleList, Angle, AngleList)</l>
 <c></c>
-<l>* gen_region_contour_xld (ROI_XLD, ROI, 'filled')</l>
+<l>    wait_seconds(0.2)</l>
+<l>endfor</l>
 <c></c>
-<l>* reduce_domain(Image, ROI, ImageROI)</l>
-<c></c>
-<c>*均值滤波</c>
-<l>* mean_image (GrayImageROI, ImageMean, 200, 3) </l>
-<c></c>
-<c>*局部阈值,分割出前景</c>
-<l>* dyn_threshold (GrayImageROI, ImageMean, RegionDynThresh, 7, 'light') </l>
-<c></c>
-<c></c>
-<c>* 3. 平滑图像</c>
-<l>smooth_image(g, SmoothImageROI, 'gauss', 2)</l>
-<c></c>
-<c>* 4. 灰度增强（线性映射）</c>
-<l>* scale_image(SmoothImageROI, EnhancedImageROI1, 3, -128)</l>
-<c></c>
-<c></c>
-<l>get_image_size (ImageROI, Width, Height)</l>
-<c>* *将图像转化为频域图像</c>
-<l>rft_generic (ImageROI, ImageFFT, 'to_freq', 'none', 'complex', Width)</l>
-<c>*生成一个高斯滤波核</c>
-<l>gen_gauss_filter (ImageGauss, 100, 100, 0, 'n', 'rft', Width, Height)</l>
-<c>*将频域图像核高斯滤波核进行卷积运算</c>
-<l>convol_fft (ImageFFT, ImageGauss, ImageConvol)</l>
-<c>*将卷积后的图像转换为时域图像</c>
-<l>rft_generic (ImageConvol, ImageFFT1, 'from_freq', 'none', 'byte', Width)</l>
-<c>*用缺陷图像减去背景图像(时域图像)</c>
-<l>sub_image (ImageROI, ImageFFT1, ImageSub, 2, 100)</l>
-<c></c>
-<l>decompose3 (ImageSub, R1, G1, B1)</l>
-<l>edges_image (R1, ImaAmp, ImaDir, 'canny', 3, 'nms', 20, 35)</l>
-<l>area_center(ImaAmp, Area1, Row, Column)</l>
-<l>*laplace_of_gauss (EnhancedImageROI1, ImageLaplace, 2)</l>
-<l>*kirsch_dir (EnhancedImageROI1, ImageEdgeAmp, ImageEdgeDir)</l>
-<l>*roberts (EnhancedImageROI1, ImageRoberts, 'gradient_sum')</l>
-<l>connection (ImaDir, ConnectedRegions)</l>
+<c>* 最后 AngleList 里保存了你每一张图片的角度信息</c>
+<c>* 你可以后续分析，例如打印</c>
+<l>dev_inspect_ctrl(AngleList)</l>
+<l>dev_inspect_ctrl(Normal_angleList)</l>
 <c></c>
 <c></c>
 <c></c>
 <c></c>
-<c>*获取lines_gauss算子Sigma, Low, High三个参数值</c>
-<l>calculate_lines_gauss_parameters (17, 60, Sigma, Low, High)</l>
-<l>lines_gauss (ConnectedRegions, Lines, Sigma, Low, High, 'dark', 'true', 'gaussian', 'true')</l>
+<c>* 设置文件夹路径</c>
+<l>FolderPath := 'G:/钽电容/dataset/六面体图/上下底面' </l>
 <c></c>
+<l>list_files (FolderPath, ['files'], Files)</l>
+<l>tuple_length (Files, Length)</l>
 <c></c>
+<c>* 初始化结果列表</c>
+<l>AngleList1 := []</l>
+<l>Normal_angleList1 := []</l>
 <c></c>
+<l>for I := 0 to Length-1 by 1</l>
 <c></c>
-<c>* 5. 阈值处理提取疑似缺陷</c>
-<l>*threshold(ImaAmp, DefectRegion, 0, 50)</l>
+<l>    tuple_select (Files, I, ImagePath)   </l>
+<l>    read_image (Image, ImagePath)</l>
+<l>    rgb1_to_gray(Image, GrayImage)</l>
+<l>    smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
+<l>    threshold(SmoothedImage, Regions, 0, 120)</l>
+<l>    closing_circle(Regions, RegionClosing, 5)</l>
+<l>    fill_up(RegionClosing, RegionFillUp)</l>
+<l>    connection(RegionFillUp, ConnectedRegions)</l>
+<l>    area_center(ConnectedRegions, Area, Row, Column)</l>
+<l>    select_shape(ConnectedRegions, TargetRegions2, 'area', 'and', 200000, 999999)</l>
+<l>    reduce_domain(Image, TargetRegions2, ImageROI2)</l>
 <c></c>
-<c>* 6. 连通区域分析</c>
-<l>* connection(DefectRegion, ConnectedRegions)</l>
+<l>    gen_contour_region_xld(TargetRegions2, Normal_contour, 'border_holes')</l>
+<l>    smooth_contours_xld(Normal_contour, SmoothedNormal, 5)  </l>
+<l>    Normal_contour := SmoothedNormal</l>
+<c>    </c>
+<l>    dev_display(Image)</l>
+<l>    dev_display(Normal_contour)</l>
 <c></c>
-<c>* 7. 面积过滤（初筛）</c>
-<l>* select_shape(DefectRegion, DefectResult1, 'area', 'and', 0, 90000)</l>
+<c>    * 测试</c>
+<l>    fit_line_contour_xld(Normal_contour, 'tukey', -1, 0, 5, 2, RowBegin1, ColBegin1, RowEnd1, ColEnd1, Nr11, Nc11, Normal_angle1)</l>
+<l>    tuple_concat(Normal_angleList1, Normal_angle1, Normal_angleList1)</l>
+<c>    * 这里的 Normal_angle 应该改成计算角度：</c>
+<l>    Angle := atan2(-Nr11, Nc11) * 180 / 3.14</l>
 <c></c>
-<c>* 8. 计算面积与中心</c>
-<l>* area_center(DefectResult1, Area1, Row, Column)</l>
+<c>    * 每次把 Angle 累积加入列表</c>
+<l>    tuple_concat(AngleList1, Angle, AngleList1)</l>
 <c></c>
-<c>* 9. 对面积大于 5000 的区域标注为 NG</c>
-<l>* count_obj(DefectResult1, Num)</l>
-<l>* for Index := 1 to Num by 1</l>
-<l>*     select_obj(DefectResult1, SingleRegion, Index)</l>
-<l>*     area_center(SingleRegion, A, R, C)</l>
-<l>*     if (A &gt; 5000)</l>
-<l>*         smallest_rectangle1(SingleRegion, Row1, Col1, Row2, Col2)</l>
-<l>*         gen_rectangle1(Rect, Row1, Col1, Row2, Col2)</l>
-<l>*         dev_set_color('red')</l>
-<l>*         dev_display(Rect)</l>
-<l>*     endif</l>
-<l>* endfor</l>
+<l>    wait_seconds(0.2)</l>
+<l>endfor</l>
 <c></c>
-<c>* 10. 显示最终结果</c>
-<l>* dev_display(Image)</l>
-<l>* dev_display(DefectResult1)</l>
-<c></c>
-<c></c>
-<c></c>
-<c>* 1. 读取图像并转换为灰度图</c>
-<l>* read_image (Image2, 'F:/钽电容-0612/模板/Image_20250613153434389.bmp')</l>
-<l>* rgb1_to_gray (Image2, GrayImage)</l>
-<c></c>
-<c>* 2. 定义 ROI 区域，裁剪图像</c>
-<l>* gen_rectangle1(ROI, 160, 280, 810, 1200)</l>
-<l>* reduce_domain(Image2, ROI, ImageROI)</l>
-<l>* rgb1_to_gray(ImageROI, GrayImageROI)</l>
-<c></c>
-<c>* 3. 平滑图像</c>
-<l>* smooth_image(GrayImageROI, SmoothImageROI, 'gauss', 2)</l>
-<c></c>
-<c>* 4. 灰度增强（线性映射）</c>
-<l>* scale_image(SmoothImageROI, EnhancedImageROI, 2, -128)</l>
-<c></c>
-<c>* 5. 阈值处理提取疑似缺陷</c>
-<l>* threshold(EnhancedImageROI, DefectRegion, 0, 50)</l>
-<c></c>
-<c>* 6. 连通区域分析</c>
-<l>* connection(DefectRegion, ConnectedRegions)</l>
-<c></c>
-<c>* 7. 面积过滤（初筛）</c>
-<l>* select_shape(DefectRegion, DefectResult2, 'area', 'and', 0, 90000)</l>
-<c></c>
-<c>* 8. 计算面积与中心</c>
-<l>* area_center(DefectResult2, Area2, Row, Column)</l>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
+<c>* 最后 AngleList 里保存了你每一张图片的角度信息</c>
+<c>* 你可以后续分析，例如打印</c>
+<l>dev_inspect_ctrl(AngleList1)</l>
+<l>dev_inspect_ctrl(Normal_angleList1)</l>
 <c></c>
 </body>
 <docu id="main">
