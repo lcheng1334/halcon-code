@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 设置文件夹路径</c>
+<l>FolderPath := 'H:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/引脚形变' </l>
+<c></c>
+<l>list_files (FolderPath, ['files'], Files)</l>
+<l>tuple_length (Files, Length)</l>
+<c></c>
+<c>* 初始化轮廓长度列表</c>
+<l>ContourLengthList := []</l>
+<c></c>
+<l>for I := 0 to Length - 1 by 1</l>
+<l>    tuple_select(Files, I, ImagePath)   </l>
+<l>    read_image(Image, ImagePath)</l>
+<l>    rgb1_to_gray(Image, GrayImage)</l>
+<l>    smooth_image(GrayImage, SmoothedImage, 'gauss', 9)</l>
+<c></c>
+<c>    * 二值化 + 闭运算</c>
+<l>    binary_threshold(SmoothedImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<l>    closing_circle(Region, RegionClosing, 5)</l>
+<l>*     fill_up(RegionClosing, RegionFillUp)</l>
+<l>    connection(RegionClosing, ConnectedRegions)</l>
+<c></c>
+<c>    * 面积筛选 + 限定ROI</c>
+<l>    select_shape(ConnectedRegions, TargetRegions2, 'area', 'and', 200000, 999999)</l>
+<l>    reduce_domain(Image, TargetRegions2, ImageROI2)</l>
+<c></c>
+<c>    * 获取平滑边界轮廓</c>
+<l>    gen_contour_region_xld(TargetRegions2, Normal_contour, 'border_holes')</l>
+<l>    smooth_contours_xld(Normal_contour, SmoothedNormal, 5)  </l>
+<l>    Normal_contour := SmoothedNormal</l>
+<c></c>
+<c>    * 显示图像和轮廓</c>
+<l>    dev_display(Image)</l>
+<l>    dev_display(Normal_contour)</l>
+<c></c>
+<c>    * 获取轮廓长度并保存</c>
+<l>    length_xld(Normal_contour, Length)</l>
+<l>    tuple_sum(Length, TotalLength)</l>
+<c></c>
+<c>    </c>
+<l>    tuple_concat(ContourLengthList, TotalLength, ContourLengthList)</l>
+<c></c>
+<l>    wait_seconds(0.1)</l>
+<l>endfor</l>
+<c></c>
+<c>* 查看轮廓长度列表</c>
+<l>dev_inspect_ctrl(ContourLengthList)</l>
+<c></c>
+<c></c>
+<c>* 设置文件夹路径</c>
+<l>FolderPath := 'H:/Detect_datasets/钽电容最终数据集/钽电容六面图/正常引脚测试' </l>
+<c></c>
+<l>list_files(FolderPath, ['files'], Files)</l>
+<l>tuple_length(Files, Length)</l>
+<c></c>
+<c>* 初始化轮廓长度列表</c>
+<l>ContourLengthList1 := []</l>
+<c></c>
+<l>for I := 0 to Length - 1 by 1</l>
+<l>    tuple_select(Files, I, ImagePath)   </l>
+<l>    read_image(Image, ImagePath)</l>
+<l>    rgb1_to_gray(Image, GrayImage)</l>
+<l>    smooth_image(GrayImage, SmoothedImage, 'gauss', 9)</l>
+<c></c>
+<c>    * 固定阈值 + 闭运算</c>
+<l>    binary_threshold(SmoothedImage, Regions, 'max_separability', 'dark', UsedThreshold)</l>
+<l>    closing_circle(Regions, RegionClosing, 5)</l>
+<l>*     fill_up(RegionClosing, RegionFillUp)</l>
+<l>    connection(RegionClosing, ConnectedRegions)</l>
+<c></c>
+<c>    * 面积筛选 + 限定ROI</c>
+<l>    select_shape(ConnectedRegions, TargetRegions2, 'area', 'and', 200000, 999999)</l>
+<l>    reduce_domain(Image, TargetRegions2, ImageROI2)</l>
+<c></c>
+<c>    * 获取平滑边界轮廓</c>
+<l>    gen_contour_region_xld(TargetRegions2, Normal_contour, 'border_holes')</l>
+<l>    smooth_contours_xld(Normal_contour, SmoothedNormal, 5)  </l>
+<l>    Normal_contour := SmoothedNormal</l>
+<c></c>
+<c>    * 显示图像和轮廓</c>
+<l>    dev_display(Image)</l>
+<l>    dev_display(Normal_contour)</l>
+<c></c>
+<c>    * 获取轮廓长度并保存</c>
+<l>    length_xld(Normal_contour, Length)</l>
+<c>    </c>
+<l>    tuple_sum(Length, TotalLength)</l>
+<c></c>
+<c>    </c>
+<l>    tuple_concat(ContourLengthList1, TotalLength, ContourLengthList1)</l>
+<c></c>
+<l>    wait_seconds(0.1)</l>
+<l>endfor</l>
+<c></c>
+<c>* 查看轮廓长度列表</c>
+<l>dev_inspect_ctrl(ContourLengthList1)</l>
+<c></c>
+<c>** 3500</c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

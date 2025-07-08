@@ -4,7 +4,7 @@
 <interface/>
 <body>
 <c>* 设置文件夹路径</c>
-<l>FolderPath := 'E:/Detect_datasets/dataset/模板' </l>
+<l>FolderPath := 'H:/Detect_datasets/钽电容最终数据集/钽电容六面图/正面亮' </l>
 <c></c>
 <l>list_files (FolderPath, ['files'], Files)</l>
 <l>tuple_length (Files, Length)</l>
@@ -13,10 +13,75 @@
 <c>    </c>
 <l>tuple_select (Files, I, ImagePath)   </l>
 <l>read_image (Image, ImagePath)</l>
-<c>* 自动提取全部ROI</c>
+<c>* 左右侧面</c>
 <l>rgb1_to_gray (Image, GrayImage)</l>
-<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
-<l>threshold (SmoothedImage, Regions, 0, 110)</l>
+<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 5)</l>
+<l>binary_threshold (SmoothedImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<l>* auto_threshold (SmoothedImage, RegionThresh, 5)</l>
+<l>* area_center (RegionThresh, Area, Row, Column)</l>
+<c>** </c>
+<l>select_shape (Region, TargetRegions, 'area', 'and', 100000, 900000)</l>
+<l>*fill_up (TargetRegions, RegionFillUp1)</l>
+<l>* gen_contour_region_xld(RegionFillUp1, Normal_contour, 'border_holes')</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<l>*erosion_circle (RegionFillUp1, RegionShrinked, 28)  // 半径10可以调整</l>
+<l>*gen_contour_region_xld(RegionShrinked, Normal_contour, 'border_holes')</l>
+<c></c>
+<c></c>
+<c></c>
+<l>fill_up (TargetRegions, RegionFillUp1)</l>
+<l>erosion_circle (RegionFillUp1, RegionShrinked, 30)</l>
+<l>gen_contour_region_xld(RegionShrinked, Normal_contour, 'border_holes')</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<l>dev_display (Image)</l>
+<l>* dev_display (Normal_contour)</l>
+<l>dev_display (Normal_contour)</l>
+<l>sort_region (RegionShrinked, SortedRegions, 'first_point', 'true', 'row')</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<l>* sort_region (TargetRegions, SortedRegions, 'first_point', 'true', 'row')</l>
+<l>select_obj(SortedRegions, Regions,1)</l>
+<l>fill_up (Regions, RegionFillUp)</l>
+<l>connection (RegionFillUp, ConnectedRegions)</l>
+<l>* area_center (ConnectedRegions, Area, Row, Column)</l>
+<l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 60000, 90000)</l>
+<c></c>
+<l>erosion_circle (TargetRegions, RegionErosion, 12.5)</l>
+<c></c>
+<l>dev_display (Image)</l>
+<l>dev_display (RegionErosion)</l>
+<c></c>
+<l>sort_region (TargetRegions, SortedRegions, 'first_point', 'true', 'row')</l>
+<l>select_obj(SortedRegions, Region1, 1)</l>
+<l>select_obj(SortedRegions, Region2, 2)</l>
+<c></c>
+<c></c>
+<l>shape_trans(Region1, FittedRegion, 'rectangle1')</l>
+<c></c>
+<l>dev_display (Image)</l>
+<l>dev_display (FittedRegion)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<l>sort_region (TargetRegions, SortedRegions, 'first_point', 'true', 'row')</l>
+<l>select_obj(SortedRegions, Regions, 2)</l>
+<c></c>
+<c></c>
+<l>* binary_threshold (SmoothedImage, Regions, 'max_separability', 'dark', UsedThreshold)</l>
+<l>* threshold (SmoothedImage, Regions, 0, 110)</l>
 <l>closing_circle (Regions, RegionClosing, 5)</l>
 <l>fill_up (RegionClosing, RegionFillUp)</l>
 <l>connection (RegionFillUp, ConnectedRegions)</l>
@@ -26,27 +91,51 @@
 <l>dev_display (Image)</l>
 <l>dev_display (TargetRegions)</l>
 <c></c>
+<l>wait_seconds(2)</l>
+<l>endfor</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>* 正面 </c>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
+<l>auto_threshold (SmoothedImage, RegionThresh, 2)</l>
+<l>select_shape (RegionThresh, TargetRegions, 'area', 'and', 200000, 999999)</l>
+<l>sort_region (TargetRegions, SortedRegions, 'first_point', 'true', 'row')</l>
+<l>select_obj(SortedRegions, Regions, 2)</l>
+<c></c>
+<c></c>
+<l>* binary_threshold (SmoothedImage, Regions, 'max_separability', 'dark', UsedThreshold)</l>
+<l>* threshold (SmoothedImage, Regions, 0, 110)</l>
+<l>closing_circle (Regions, RegionClosing, 5)</l>
+<l>fill_up (RegionClosing, RegionFillUp)</l>
+<l>connection (RegionFillUp, ConnectedRegions)</l>
+<l>area_center (ConnectedRegions, Area, Row, Column)</l>
+<l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
+<l>reduce_domain (Image, TargetRegions, ImageROI)</l>
+<c></c>
 <c></c>
 <c></c>
 <c>* 正面打印区域</c>
-<l>rgb1_to_gray (Image, GrayImage)</l>
-<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
-<l>threshold (SmoothedImage, Regions, 0, 80)</l>
-<l>closing_circle(Regions, RegionClosing, 5)</l>
-<l>fill_up (RegionClosing, RegionFillUp)</l>
-<l>connection (RegionFillUp, ConnectedRegions)</l>
+<l>* rgb1_to_gray (Image, GrayImage)</l>
+<l>* smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
+<l>* threshold (SmoothedImage, Regions, 0, 80)</l>
+<l>* closing_circle(Regions, RegionClosing, 5)</l>
+<l>* fill_up (RegionClosing, RegionFillUp)</l>
+<l>* connection (RegionFillUp, ConnectedRegions)</l>
 <c></c>
-<l>area_center (ConnectedRegions, Area, Row, Column)</l>
-<l>select_shape (ConnectedRegions, TargetRegions2, 'area', 'and', 20000, 999999)</l>
-<l>reduce_domain (Image, TargetRegions2, ImageROI)</l>
-<l>dev_display (Image)</l>
-<l>dev_display (TargetRegions2)</l>
+<l>* area_center (ConnectedRegions, Area, Row, Column)</l>
+<l>* select_shape (ConnectedRegions, TargetRegions2, 'area', 'and', 20000, 999999)</l>
+<l>* reduce_domain (Image, TargetRegions2, ImageROI)</l>
+<l>* dev_display (Image)</l>
+<l>* dev_display (TargetRegions2)</l>
 <c></c>
 <c></c>
 <c>* 正面字符区域</c>
-<l>difference (TargetRegions, TargetRegions2, RegionDifference)</l>
-<l>dev_display (Image)</l>
-<l>dev_display (RegionDifference)</l>
+<l>* difference (TargetRegions, TargetRegions2, RegionDifference)</l>
+<l>* dev_display (Image)</l>
+<l>* dev_display (RegionDifference)</l>
 <c></c>
 <c>* 极片区域</c>
 <l>* rgb1_to_gray (Image, GrayImage)</l>
@@ -70,11 +159,11 @@
 <c></c>
 <c></c>
 <c>* 进行操作</c>
-<l>rgb1_to_gray (ImageROI, GrayImageROI)</l>
-<l>decompose3 (ImageROI, R, G, B)</l>
+<l>* rgb1_to_gray (ImageROI, GrayImageROI)</l>
+<l>* decompose3 (ImageROI, R, G, B)</l>
 <c></c>
-<l>wait_seconds(0.2)</l>
-<l>endfor</l>
+<l>* wait_seconds(0.2)</l>
+<l>* endfor</l>
 </body>
 <docu id="main">
 <parameters/>

@@ -17,8 +17,8 @@
 <c>* 定义ROI区域</c>
 <l>rgb1_to_gray (Image, GrayImage)</l>
 <l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
-<l>binary_threshold (SmoothedImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
-<l>fill_up (Region, RegionFillUp)</l>
+<l>threshold (GrayImage, Regions, 0, 130)</l>
+<l>fill_up (Regions, RegionFillUp)</l>
 <l>closing_circle (RegionFillUp, RegionClosing, 5)</l>
 <l>connection (RegionClosing, ConnectedRegions)</l>
 <l>area_center (ConnectedRegions, Area, Row, Column)</l>
@@ -36,7 +36,7 @@
 <c></c>
 <c>* 阈值处理提取疑似缺陷</c>
 <l>threshold(EnhancedImageROI, DefectRegion, 0, 40)</l>
-<c> </c>
+<c></c>
 <l>fill_up (DefectRegion, RegionFillUp1)</l>
 <c></c>
 <l>closing_circle(RegionFillUp1, RegionClosing, 8)</l>
@@ -77,7 +77,7 @@
 <l>dev_set_color('red')</l>
 <l>dev_display(SelectedRegions)</l>
 <c></c>
-<l>wait_seconds(1)</l>
+<l>wait_seconds(2)</l>
 <l>endfor</l>
 <c></c>
 </body>

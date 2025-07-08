@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 设置文件夹路径</c>
+<l>FolderPath := 'H:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/炸伤' </l>
+<c></c>
+<l>list_files (FolderPath, ['files'], Files)</l>
+<l>tuple_length (Files, Length)</l>
+<c></c>
+<l>for I := 0 to Length-1 by 1</l>
+<c>    </c>
+<l>tuple_select (Files, I, ImagePath)   </l>
+<l>read_image (Image, ImagePath)</l>
+<c></c>
+<l>get_image_size (Image, Width, Height)</l>
+<c></c>
+<c></c>
+<l>rgb1_to_gray(Image, GrayImage)</l>
+<c></c>
+<l>decompose3(Image, R, G, B)</l>
+<c></c>
+<c></c>
+<c>* 二值化 + 闭运算</c>
+<l>binary_threshold(GrayImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<l>fill_up(Region, RegionFillUp)</l>
+<c></c>
+<l>auto_threshold (GrayImage, Regions, 2)</l>
+<l>area_center(Regions, Area1, Row, Column)</l>
+<c></c>
+<c></c>
+<l>select_shape(Regions, DefectResult, 'area', 'and', 0, 9999999)</l>
+<c></c>
+<l>difference (RegionFillUp, DefectResult, RegionDifference)</l>
+<c></c>
+<c></c>
+<l>binary_threshold(GrayImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<l>closing_circle(Region, RegionClosing, 5)</l>
+<l>fill_up(RegionClosing, RegionFillUp)</l>
+<l>connection(RegionClosing, ConnectedRegions)</l>
+<c></c>
+<c>* 面积筛选 + 限定ROI</c>
+<l>select_shape(ConnectedRegions, TargetRegions2, 'area', 'and', 200000, 999999)</l>
+<c></c>
+<l>erosion_circle (TargetRegions2, RegionErosion, 25)</l>
+<l>fill_up(RegionErosion, RegionFillUp1)</l>
+<c></c>
+<c></c>
+<l>reduce_domain(Image, RegionFillUp1, ImageROI2)</l>
+<l>dev_display (Image) </l>
+<l>dev_display (TargetRegions2)</l>
+<c></c>
+<c></c>
+<c>* 3. 平滑图像</c>
+<l>smooth_image(G, SmoothImageROI, 'gauss', 2)</l>
+<c></c>
+<c>* 4. 灰度增强（线性映射）</c>
+<l>* scale_image(SmoothImageROI, EnhancedImageROI, 2, -100)</l>
+<c></c>
+<l>scale_image(SmoothImageROI, EnhancedImageROI, 2, -100)</l>
+<c></c>
+<c>* 5. 阈值处理提取疑似缺陷</c>
+<l>threshold(EnhancedImageROI, DefectRegion, 0, 20)</l>
+<c></c>
+<c>* 6. 连通区域分析</c>
+<l>connection(DefectRegion, ConnectedRegions)</l>
+<c></c>
+<c>* 8. 计算面积与中心</c>
+<l>area_center(ConnectedRegions, Area1, Row, Column)</l>
+<c></c>
+<c></c>
+<c>* 7. 面积过滤（初筛）</c>
+<l>select_shape(ConnectedRegions, DefectResult, 'area', 'and', 0, 9999999999)</l>
+<c></c>
+<c></c>
+<l>wait_seconds(2)</l>
+<l>endfor</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

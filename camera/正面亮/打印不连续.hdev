@@ -33,6 +33,7 @@
 <c>* 分解RGB通道并转换为灰度图</c>
 <l>rgb1_to_gray(ImageROI, GrayImage1)</l>
 <c></c>
+<c></c>
 <l>smooth_image(GrayImage1, SmoothedImage, 'gauss', 3)</l>
 <c></c>
 <c>* 灰度增强</c>
@@ -59,7 +60,7 @@
 <l>    IsOK := 0</l>
 <l>endif</l>
 <c></c>
-<l>wait_seconds(1)</l>
+<l>wait_seconds(2)</l>
 <l>endfor</l>
 <c></c>
 </body>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 1. 读取文件列表</c>
+<l>list_files('H:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/炸伤/上下底面', ['files'], Files)</l>
+<l>tuple_length(Files, Length)</l>
+<c></c>
+<c>* 2. 遍历每张图片</c>
+<l>for I := 0 to Length-1 by 1</l>
+<l>    tuple_select(Files, I, ImagePath)</l>
+<l>    read_image(Image, ImagePath)</l>
+<c>    * 分离 RGB 通道</c>
+<l>    decompose3(Image, R, G, B)</l>
+<c>  </c>
+<c>    * 黄色阈值分割（这里你只用了R通道，可以按需加G、B阈值）</c>
+<l>     threshold(R, RRegion, 0, 75)</l>
+<c>    * 连接区域</c>
+<l>    connection(RRegion, ConnectedRegions)</l>
+<c>    * 开运算去噪</c>
+<l>    opening_circle(ConnectedRegions, CleanRegion, 3.5)</l>
+<l>    area_center (CleanRegion, Area, Row, Column)</l>
+<c></c>
+<c>    </c>
+<c>    * 面积筛选</c>
+<l>    select_shape(CleanRegion, SelectedRegions, 'area', 'and', 5000, 9999999)</l>
+<l>    paint_region (SelectedRegions, R, ImageResult, 110, 'fill')</l>
+<c></c>
+<c>    </c>
+<c>    * 打印筛选后区域数量</c>
+<l>     count_obj(SelectedRegions, Num)</l>
+<c></c>
+<c>    * 边界提取</c>
+<l>    boundary(SelectedRegions, BorderRegion, 'inner')</l>
+<c></c>
+<c></c>
+<c>    </c>
+<c></c>
+<c>* 提取边界并显示</c>
+<l>    boundary ( ConnectedRegions, RegionBoundary, 'inner')</l>
+<l>    dev_display (Image)</l>
+<l>    dev_display (SelectedRegions)</l>
+<c>    </c>
+<l>* difference (R, SelectedRegions, RegionDifference)</l>
+<c>    * 3. 平滑图像</c>
+<l>smooth_image(ImageResult, SmoothImageROI, 'gauss', 2)</l>
+<c></c>
+<c>* 4. 灰度增强（线性映射）</c>
+<l>* scale_image(SmoothImageROI, EnhancedImageROI, 2, -100)</l>
+<c></c>
+<l>scale_image(SmoothImageROI, EnhancedImageROI, 2, -100)</l>
+<c></c>
+<c>* 5. 阈值处理提取疑似缺陷</c>
+<l>threshold(EnhancedImageROI, DefectRegion, 0, 20)</l>
+<c></c>
+<c>* 6. 连通区域分析</c>
+<l>connection(DefectRegion, ConnectedRegions)</l>
+<c></c>
+<c>* 8. 计算面积与中心</c>
+<l>area_center(ConnectedRegions, Area1, Row, Column)</l>
+<c></c>
+<c></c>
+<c>* 7. 面积过滤（初筛）</c>
+<l>select_shape(ConnectedRegions, DefectResult, 'area', 'and', 0, 9999999999)</l>
+<c></c>
+<c>    </c>
+<c></c>
+<c>    * 等待一下方便观察，可以按需调整时间，或换成用户按键</c>
+<l>    wait_seconds(1)</l>
+<l>endfor</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

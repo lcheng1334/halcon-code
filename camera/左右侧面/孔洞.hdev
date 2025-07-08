@@ -14,67 +14,9 @@
 <c> </c>
 <l>* tuple_select (Files, I, ImagePath)  </l>
 <c></c>
-<l>ImagePath := 'D:/code/dataset/钽电容最终数据集/钽电容缺陷分类/孔洞/Image_20250620163401820.bmp'</l>
+<l>ImagePath := 'G:/钽电容/钽电容最终数据集/钽电容缺陷分类/孔洞/Image_20250620163401820.bmp'</l>
 <c></c>
-<l>read_image (Image, ImagePath)</l>
-<c></c>
-<c>* 定义ROI区域</c>
-<l>rgb1_to_gray (Image, GrayImage)</l>
-<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
-<l>threshold (GrayImage, Regions, 0, 130)</l>
-<l>fill_up (Regions, RegionFillUp)</l>
-<l>closing_circle (RegionFillUp, RegionClosing, 5)</l>
-<l>connection (RegionClosing, ConnectedRegions)</l>
-<l>area_center (ConnectedRegions, Area, Row, Column)</l>
-<l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
-<l>reduce_domain (Image, TargetRegions, ImageROI)</l>
-<c></c>
-<l>decompose3(ImageROI, R, G, B)</l>
-<l>rgb1_to_gray(ImageROI, GrayImage)</l>
-<c></c>
-<c></c>
-<c>* 高斯模糊</c>
-<l>smooth_image(G, SmoothedImage, 'gauss', 3)</l>
-<c></c>
-<c>* 灰度增强</c>
-<l>scale_image(SmoothedImage, EnhancedImageROI, 2, -70)</l>
-<c></c>
-<c>* 阈值处理提取疑似缺陷</c>
-<l>threshold(EnhancedImageROI, DefectRegion, 0, 25)</l>
-<c></c>
-<c>* 连通区域分析</c>
-<l>connection(DefectRegion, ConnectedRegions)</l>
-<c></c>
-<l>area_center (ConnectedRegions, Areas, Rows, Cols)</l>
-<c></c>
-<l>select_shape (ConnectedRegions, DefectRegion, 'area', 'and', 100, 99999)</l>
-<c></c>
-<l>area_center (DefectRegion, Areas_final, Rows, Cols)</l>
-<c></c>
-<c></c>
-<l>paint_region(DefectRegion , R, R_painted, 255, 'fill')  </l>
-<l>paint_region(DefectRegion, G, G_painted, 0, 'fill')    </l>
-<l>paint_region(DefectRegion, B, B_painted, 0, 'fill')    </l>
-<l>compose3(R_painted, G_painted, B_painted, ImagePainted)</l>
-<l>dev_display(ImagePainted)</l>
-<c></c>
-<c></c>
-<c></c>
-<l>IsOk := 1</l>
-<l>if (Areas_final &gt; 0)</l>
-<l>    IsOk := 0</l>
-<l>endif</l>
-<c></c>
-<c>* 显示原图</c>
-<l>dev_display(Image)</l>
-<c></c>
-<c>* 显示筛选后的缺陷区域（满足面积条件）</c>
-<l>dev_set_color('red')</l>
-<l>dev_display(DefectRegion)</l>
-<l>return ()</l>
-<c></c>
-<c></c>
-<l>* hole (ImagePainted, ImagePath, IsOk)</l>
+<l>hole (ImagePainted, ImagePath, IsOk)</l>
 <c></c>
 <l>* wait_seconds(1)</l>
 <l>* endfor</l>

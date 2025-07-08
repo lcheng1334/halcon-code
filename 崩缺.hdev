@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 1. 读取文件列表</c>
+<l>*list_files('D:/code/dataset/崩缺', ['files'], Files)</l>
+<l>list_files('C:/Users/Administrator/Desktop', ['files'], Files)</l>
+<l>tuple_length(Files, Length)</l>
+<c></c>
+<c>* 2. 遍历每张图片</c>
+<l>for I := 0 to Length-1 by 1</l>
+<l>tuple_select(Files, I, ImagePath)</l>
+<l>read_image(Image, ImagePath)</l>
+<c></c>
+<l>get_image_size (Image, Width, Height)</l>
+<c></c>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<l>decompose3 (Image, R, G, B)</l>
+<c></c>
+<l>mult_image (R, G, RG, 0.01, 0)</l>
+<l>mult_image (R, B, RB, 0.01, 0)</l>
+<l>mult_image (G, B, GB, 0.01, 0)</l>
+<c></c>
+<l>rft_generic (RG, ImageFFT, 'to_freq', 'none', 'complex', Width)</l>
+<c>*生成一个高斯滤波核</c>
+<l>gen_gauss_filter (ImageGauss, 100, 100, 0, 'n', 'rft', Width, Height)</l>
+<c>*将频域图像核高斯滤波核进行卷积运算</c>
+<l>convol_fft (ImageFFT, ImageGauss, ImageConvol)</l>
+<c>*将卷积后的图像转换为空间域图像</c>
+<l>rft_generic (ImageConvol, ImageFFT1, 'from_freq', 'none', 'byte', Width)</l>
+<c>*用缺陷图像减去背景图像(时域图像)</c>
+<l>sub_image (RG, ImageFFT1, ImageSub, 2, 100)</l>
+<c></c>
+<c></c>
+<l>wait_seconds(1)</l>
+<l>endfor</l>
+<c> </c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

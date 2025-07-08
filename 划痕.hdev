@@ -3,40 +3,43 @@
 <procedure name="main">
 <interface/>
 <body>
-<c>* 1. 读取图像并转换为灰度图</c>
-<l>read_image (Image1, 'G:/钽电容/沙眼/Image_20250612170114456.bmp')</l>
+<c>* 设置文件夹路径</c>
+<l>FolderPath := 'H:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/划痕' </l>
 <c></c>
-<l>* decompose3 (Image1, R, G, B)</l>
+<l>list_files (FolderPath, ['files'], Files)</l>
+<l>tuple_length (Files, Length)</l>
 <c></c>
-<l>* rgb1_to_gray (Image1, GrayImage)</l>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c>* 2. 定义 ROI 区域，裁剪图像</c>
+<l>for I := 0 to Length-1 by 1</l>
+<c>    </c>
+<l>tuple_select (Files, I, ImagePath)   </l>
+<l>read_image (Image, ImagePath)</l>
 <c></c>
 <c>*使用自动阈值分割图像前景区域</c>
-<l>rgb1_to_gray (Image1, GrayImage)</l>
+<l>rgb1_to_gray (Image, GrayImage)</l>
 <l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
+<l>binary_threshold (SmoothedImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<c></c>
+<l>auto_threshold(SmoothedImage, RegionThresh, 2)</l>
+<l>select_shape (RegionThresh, TargetRegions, 'area', 'and', 200000, 999999)</l>
+<l>area_center (TargetRegions, Area, Row, Column)</l>
+<l>sort_region (TargetRegions, SortedRegions, 'first_point', 'true', 'row')</l>
+<c></c>
+<l>select_obj(SortedRegions, SecondLargestRegion, 2)</l>
+<l>fill_up (SecondLargestRegion, RegionFillUp)</l>
+<c></c>
+<c></c>
 <l>threshold (GrayImage, Regions, 0, 130)</l>
 <l>fill_up (Regions, RegionFillUp)</l>
 <l>closing_circle (RegionFillUp, RegionClosing, 5)</l>
-<l>connection (RegionClosing, ConnectedRegions)</l>
+<l>erosion_circle (RegionClosing, RegionErosion, 20)</l>
+<l>connection (RegionErosion, ConnectedRegions)</l>
 <l>area_center (ConnectedRegions, Area, Row, Column)</l>
 <l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
-<l>reduce_domain (Image1, TargetRegions, ImageROI)</l>
+<l>reduce_domain (Image, TargetRegions, ImageROI)</l>
 <c></c>
 <c></c>
 <l>decompose3 (ImageROI, R, G, B)</l>
 <l>rgb1_to_gray(ImageROI, GrayImageROI)</l>
-<c></c>
-<c>*均值滤波</c>
-<l>* mean_image (GrayImageROI, ImageMean, 200, 3) </l>
-<c></c>
-<c>*局部阈值,分割出前景</c>
-<l>* dyn_threshold (GrayImageROI, ImageMean, RegionDynThresh, 7, 'light') </l>
-<c></c>
 <c></c>
 <c>* 3. 平滑图像</c>
 <l>smooth_image(B, SmoothImageROI, 'gauss', 2)</l>
@@ -46,21 +49,23 @@
 <c></c>
 <l>threshold(EnhancedImageROI, DefectRegion, 60, 90)</l>
 <c></c>
-<c></c>
-<c></c>
 <l>connection(DefectRegion, ConnectedRegions) </l>
-<c></c>
-<c></c>
 <c></c>
 <l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 400, 1000)</l>
 <c></c>
-<c></c>
 <c>* 显示原图</c>
-<l>dev_display(Image1)</l>
+<l>dev_display(Image)</l>
 <c></c>
 <c>* 显示筛选后的缺陷区域（满足面积条件）</c>
 <l>dev_set_color('red')</l>
 <l>dev_display(SelectedRegions)</l>
+<c></c>
+<c></c>
+<l>wait_seconds(2)</l>
+<l>endfor</l>
+<c></c>
+<c></c>
+<c></c>
 <c></c>
 <c></c>
 <c>* 7. 打开新窗口显示阈值图像（增强图像），并设置字体</c>

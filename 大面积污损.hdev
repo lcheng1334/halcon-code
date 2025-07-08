@@ -4,7 +4,7 @@
 <interface/>
 <body>
 <c>* 1. 读取图像并转换为灰度图</c>
-<l>read_image (Image, 'G:/钽电容/dataset/新缺陷例图/新/Image_20250612163038577.bmp')</l>
+<l>read_image (Image, 'H:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/大面积缺陷/Image_20250612163038577.bmp')</l>
 <c></c>
 <c>* 自动提取全部ROI</c>
 <l>rgb1_to_gray (Image, GrayImage)</l>

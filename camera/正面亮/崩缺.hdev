@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 1. 读取文件列表</c>
+<l>list_files('H:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/崩缺', ['files'], Files)</l>
+<l>tuple_length(Files, Length)</l>
+<c></c>
+<c>* 2. 遍历每张图片</c>
+<l>for I := 0 to Length-1 by 1</l>
+<l>tuple_select(Files, I, ImagePath)</l>
+<l>read_image(Image, ImagePath)</l>
+<l>smooth_image (Image, ImageSmooth, 'gauss', 2)</l>
+<l>decompose3 (ImageSmooth, R, G, B)</l>
+<l>compose3 (B, G, R, bgr_image)</l>
+<c></c>
+<c>** 1/255 = 0.004</c>
+<l>mult_image (R, G, ImageResult1, 0.004, 0)</l>
+<l>mult_image (G, B, ImageResult2, 0.004, 0)</l>
+<l>mult_image (R, B, ImageResult3, 0.004, 0)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<l>wait_seconds(1)</l>
+<l>endfor</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
