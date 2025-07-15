@@ -4,7 +4,7 @@
 <interface/>
 <body>
 <c>* 1. 读取文件列表</c>
-<l>list_files('D:/code/dataset/钽电容最终数据集/钽电容缺陷分类/沙眼', ['files'], Files)</l>
+<l>list_files('C:/Users/19255/Desktop/demo-0708/沙眼', ['files'], Files)</l>
 <l>tuple_length(Files, Length)</l>
 <c></c>
 <c>* 2. 遍历每张图片</c>

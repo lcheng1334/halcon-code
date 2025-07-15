@@ -4,7 +4,7 @@
 <interface/>
 <body>
 <c>* 设置文件夹路径</c>
-<l>FolderPath := 'H:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/引脚形变' </l>
+<l>FolderPath := 'E:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/引脚形变' </l>
 <c></c>
 <l>list_files (FolderPath, ['files'], Files)</l>
 <l>tuple_length (Files, Length)</l>

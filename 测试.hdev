@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image (image_daheng, 'C:/Users/19255/Desktop/demo-0708/相机测试/daheng.png')</l>
+<c></c>
+<l>read_image (image_hangkang130, 'C:/Users/19255/Desktop/demo-0708/相机测试/haikang130.png')</l>
+<c></c>
+<l>read_image (image_haikang160, 'C:/Users/19255/Desktop/demo-0708/ae1453e1265ab56d4e692731cef64e9a.bmp')</l>
+<c></c>
+<l>image := image_haikang160</l>
+<c></c>
+<l>get_image_size (image, Width, Height)</l>
+<l>rgb1_to_gray (image, GrayImage)</l>
+<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
+<l>threshold (SmoothedImage, Region, 30, 80)</l>
+<l>* binary_threshold(SmoothedImage, Regions, 'max_separability', 'dark', UsedThreshold)</l>
+<l>closing_circle (Region, RegionClosing, 3)</l>
+<l>fill_up (RegionClosing, RegionFillUp)</l>
+<c></c>
+<l>connection (RegionFillUp, ConnectedRegions)</l>
+<l>area_center (ConnectedRegions, Area, Row, Column)</l>
+<l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 60000, 99999999)</l>
+<l>area_center (TargetRegions, Area1, Row, Column)</l>
+<c></c>
+<l>dev_display (image)</l>
+<l>dev_display (TargetRegions)</l>
+<l>reduce_domain (image, TargetRegions, ImageReduced)</l>
+<c></c>
+<l>rgb1_to_gray (ImageReduced, GrayImage1)</l>
+<l>decompose3 (ImageReduced, R, G, B)</l>
+<c></c>
+<l>smooth_image (G, ImageSmooth, 'gauss', 3)</l>
+<c></c>
+<l>threshold (ImageSmooth, Region1, 40, 50)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

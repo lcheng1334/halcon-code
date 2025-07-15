@@ -36,7 +36,7 @@
 <c></c>
 <c></c>
 <c>* 设置文件夹路径</c>
-<l>FolderPath := 'H:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/暗裂纹' </l>
+<l>FolderPath := 'D:/微信聊天记录/xwechat_files/wxid_7y9vg6av1y8122_9924/msg/file/2025-07/效果图2/暗裂纹' </l>
 <c></c>
 <l>list_files (FolderPath, ['files'], Files)</l>
 <l>tuple_length (Files, Length)</l>
@@ -45,27 +45,39 @@
 <c></c>
 <c></c>
 <l>tuple_select (Files, I, ImagePath)   </l>
+<c></c>
+<l>ImagePath := 'D:/微信聊天记录/xwechat_files/wxid_7y9vg6av1y8122_9924/msg/file/2025-07/20250715/暗裂纹/Image_20250715115112552.bmp'</l>
+<c></c>
 <l>read_image (demo_Image, ImagePath)</l>
 <l>get_image_size (demo_Image, Width, Height)</l>
 <l>rgb1_to_gray (demo_Image, GrayImage)</l>
 <l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
 <l>* binary_threshold(SmoothedImage, Regions, 'max_separability', 'dark', UsedThreshold)</l>
-<l>auto_threshold (SmoothedImage, Regions2, 4)</l>
+<l>* auto_threshold (SmoothedImage, Regions2, 4)</l>
+<l>edges_sub_pix (GrayImage, Edges, 'canny', 5, 20, 40)</l>
+<l>dev_display (GrayImage)</l>
+<l>dev_display (Edges)</l>
 <c></c>
-<l>closing_circle (Regions2, RegionClosing, 3)</l>
-<l>connection (RegionClosing, ConnectedRegions)</l>
+<l>threshold (SmoothedImage, Region, 120, 250)</l>
+<c></c>
+<l>closing_circle (Region, RegionClosing, 3)</l>
+<l>fill_up (RegionClosing, RegionFillUp)</l>
+<l>connection (RegionFillUp, ConnectedRegions)</l>
 <l>area_center (ConnectedRegions, Area, Row, Column)</l>
-<l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 60000, 99999999)</l>
+<l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 50000, 999999999999)</l>
+<l>area_center (TargetRegions, Area1, Row, Column)</l>
 <c></c>
-<l>sort_region (TargetRegions, SortedRegions, 'first_point', 'true', 'row')</l>
-<l>select_obj (SortedRegions, ObjectSelected1, 2)</l>
-<l>select_obj (SortedRegions, ObjectSelected, 3)</l>
-<l>fill_up (ObjectSelected1, RegionFillUp1)</l>
-<l>fill_up (ObjectSelected, RegionFillUp)</l>
-<l>difference (RegionFillUp1, RegionFillUp, RegionDifference)</l>
-<l>reduce_domain (demo_Image, RegionDifference, ImageROI)</l>
 <l>dev_display (demo_Image)</l>
-<l>dev_display (RegionDifference)</l>
+<l>dev_display (TargetRegions)</l>
+<c></c>
+<l>* sort_region (TargetRegions, SortedRegions, 'first_point', 'true', 'row')</l>
+<l>* select_obj (SortedRegions, ObjectSelected1, 1)</l>
+<l>* select_obj (SortedRegions, ObjectSelected,1)</l>
+<l>* fill_up (ObjectSelected1, RegionFillUp1)</l>
+<l>* fill_up (ObjectSelected, RegionFillUp)</l>
+<l>* difference (RegionFillUp1, RegionFillUp, RegionDifference)</l>
+<l>reduce_domain (demo_Image, TargetRegions, ImageROI)</l>
+<c> </c>
 <c></c>
 <c></c>
 <c>*图像ROI进行腐蚀操作</c>
@@ -85,7 +97,7 @@
 <c>*将卷积后的图像转换为空间域图像</c>
 <l>rft_generic (ImageConvol, ImageFFT1, 'from_freq', 'none', 'byte', Width)</l>
 <c>*用缺陷图像减去背景图像(时域图像)</c>
-<l>sub_image (g, ImageFFT1, ImageSub, 2, 160)</l>
+<l>sub_image (g, ImageFFT1, ImageSub, 2, 140)</l>
 <c></c>
 <l>smooth_image(ImageSub, SmoothImageROI, 'gauss', 1)</l>
 <c></c>
@@ -94,26 +106,39 @@
 <c></c>
 <l>emphasize (SmoothImageROI, EnhancedImage, 10, 10, 1)</l>
 <c></c>
-<c>* 顶帽变换增强暗裂纹（消除背景大尺度亮度）</c>
-<c>* top_hat(ImageMedian, TopHat, 'circle', 15)</c>
-<c></c>
 <c>* 灰度拉伸增强裂纹特征</c>
-<l>scale_image(EnhancedImage, ScaledImage, 2, -80)</l>
+<l>scale_image(EnhancedImage, ScaledImage, 2, -40)</l>
 <c></c>
 <c>* 二次平滑（去除轻微伪影）</c>
-<l>mean_image(ScaledImage, SmoothImage, 5, 5)</l>
+<l>mean_image(EnhancedImage, SmoothImage, 5, 5)</l>
 <c></c>
 <c></c>
-<l>calculate_lines_gauss_parameters(5, 60, Sigma, Low, High)</l>
-<l>lines_gauss (ImageSub, Lines, Sigma, Low, High, 'dark', 'true', 'gaussian', 'true')</l>
+<l>calculate_lines_gauss_parameters(6, 60, Sigma, Low, High)</l>
+<l>lines_gauss (SmoothImage, Lines, Sigma, Low, High, 'dark', 'true', 'gaussian', 'true')</l>
 <l>union_adjacent_contours_xld(Lines, UnionContours, 10, 1, 'attr_keep')</l>
-<l>select_shape_xld(UnionContours, LongContours, 'contlength', 'and', 30, 1000)</l>
+<c></c>
+<c></c>
+<l>dev_display(demo_Image)</l>
+<l>dev_display(UnionContours)</l>
+<c></c>
+<c></c>
+<l>select_shape_xld(UnionContours, LongContours, 'contlength', 'and', 20, 100000)</l>
+<c></c>
+<l>dev_display(demo_Image)</l>
+<l>dev_set_line_width(2)</l>
+<l>dev_set_color('red')</l>
+<l>dev_display(LongContours)</l>
+<l>wait_seconds(2)</l>
+<c></c>
+<c></c>
+<l>select_shape_xld(LongContours, CrackContours, 'anisometry', 'and', 2, 999999999)</l>
+<c></c>
 <c>* 显示原图</c>
 <l>dev_display(demo_Image)</l>
 <c>* 显示检测结果</c>
 <l>dev_set_line_width(2)</l>
 <l>dev_set_color('red')</l>
-<l>dev_display(LongContours)</l>
+<l>dev_display(CrackContours)</l>
 <c></c>
 <c></c>
 <c></c>

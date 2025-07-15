@@ -11,8 +11,20 @@
 <c></c>
 <l>for I := 0 to Length-1 by 1</l>
 <c>    </c>
-<l>tuple_select (Files, I, ImagePath)   </l>
+<l>tuple_select (Files, I, ImagePath)</l>
+<c></c>
+<c>** 正面</c>
+<l>ImagePath := 'C:/Users/19255/Desktop/demo-0708/相机测试/haikang160.png'</l>
+<c></c>
+<c></c>
 <l>read_image (Image, ImagePath)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>**</c>
+<c></c>
 <c>* 左右侧面</c>
 <l>rgb1_to_gray (Image, GrayImage)</l>
 <l>smooth_image(GrayImage, SmoothedImage, 'gauss', 5)</l>

@@ -4,36 +4,61 @@
 <interface/>
 <body>
 <c>* 设置文件夹路径</c>
-<l>FolderPath := 'H:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/打印不连续' </l>
+<l>FolderPath := 'D:/微信聊天记录/xwechat_files/wxid_7y9vg6av1y8122_9924/msg/file/2025-07/20250715/崩缺/Image_20250715114606404.bmp' </l>
 <c></c>
 <l>list_files (FolderPath, ['files'], Files)</l>
 <l>tuple_length (Files, Length)</l>
 <c></c>
 <l>for I := 0 to Length-1 by 1</l>
 <c>    </c>
-<l>tuple_select (Files, I, ImagePath)   </l>
-<l>read_image (Image, ImagePath)</l>
+<l>tuple_select (Files, I, ImagePath) </l>
 <c></c>
+<l>ImagePath := 'D:/微信聊天记录/xwechat_files/wxid_7y9vg6av1y8122_9924/msg/file/2025-07/20250715/崩缺/Image_20250715114555699.bmp'</l>
+<c></c>
+<c></c>
+<l>read_image (Image, ImagePath)</l>
+<l>decompose3 (Image, Image1, Image2, Image3)</l>
 <c></c>
 <c>* 定义ROI区域</c>
 <l>rgb1_to_gray (Image, GrayImage)</l>
-<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
-<l>threshold (SmoothedImage, Regions, 0, 80)</l>
+<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 5)</l>
+<l>threshold (SmoothedImage, Regions, 90, 110)</l>
 <l>closing_circle(Regions, RegionClosing, 5)</l>
 <l>fill_up (RegionClosing, RegionFillUp)</l>
 <l>connection (RegionFillUp, ConnectedRegions)</l>
 <c></c>
 <l>area_center (ConnectedRegions, Area, Row, Column)</l>
-<l>select_shape (ConnectedRegions, TargetRegions2, 'area', 'and', 20000, 999999)</l>
+<l>select_shape (ConnectedRegions, TargetRegions2, 'area', 'and', 200000, 999999)</l>
 <l>reduce_domain (Image, TargetRegions2, ImageROI)</l>
 <l>dev_display (Image)</l>
 <l>dev_display (TargetRegions2)</l>
+<c></c>
+<c></c>
+<l>threshold (SmoothedImage, Regions, 130, 180)</l>
+<l>dilation_circle (Regions, RegionDilation, 9)</l>
+<l>fill_up (RegionDilation, RegionFillUp1)</l>
+<l>connection (RegionFillUp1, ConnectedRegions1)</l>
+<l>area_center (ConnectedRegions1, Area3, Row1, Column1)</l>
+<l>select_shape (ConnectedRegions1, SelectedRegions, 'area', 'and', 15000, 9999999999)</l>
+<l>reduce_domain (Image, SelectedRegions, ImageROI)</l>
+<l>dev_display (Image)</l>
+<l>dev_display (SelectedRegions)</l>
+<c></c>
+<l>difference (TargetRegions2, SelectedRegions, RegionDifference)</l>
+<l>reduce_domain (Image, RegionDifference, ImageROI)</l>
+<l>dev_display (Image)</l>
+<l>dev_display (ImageROI)</l>
+<c></c>
+<c></c>
 <c></c>
 <c></c>
 <c>* 分解RGB通道并转换为灰度图</c>
 <l>rgb1_to_gray(ImageROI, GrayImage1)</l>
 <c></c>
 <l>smooth_image(GrayImage1, SmoothedImage, 'gauss', 3)</l>
+<l>dilation_circle (SmoothedImage, RegionDilation, 5)</l>
+<c></c>
+<l>connection (SmoothedImage, ConnectedRegions2)</l>
 <c></c>
 <c>* 灰度增强</c>
 <l>scale_image(SmoothedImage, EnhancedImageROI, 2, -150)</l>

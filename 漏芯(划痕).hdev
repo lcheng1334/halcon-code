@@ -4,7 +4,7 @@
 <interface/>
 <body>
 <c>* 设置文件夹路径</c>
-<l>FolderPath := 'H:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/漏芯' </l>
+<l>FolderPath := 'F:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/漏芯' </l>
 <c></c>
 <l>list_files (FolderPath, ['files'], Files)</l>
 <l>tuple_length (Files, Length)</l>
@@ -17,14 +17,16 @@
 <c>* 定义ROI区域</c>
 <l>rgb1_to_gray (Image, GrayImage)</l>
 <l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
-<l>binary_threshold (SmoothedImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<c></c>
+<l>*   binary_threshold (SmoothedImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<l>threshold (SmoothedImage, Region, 50, 120)</l>
+<c></c>
 <l>fill_up (Region, RegionFillUp)</l>
 <l>closing_circle (RegionFillUp, RegionClosing, 5)</l>
 <l>connection (RegionClosing, ConnectedRegions)</l>
 <l>area_center (ConnectedRegions, Area, Row, Column)</l>
 <l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
 <l>reduce_domain (Image, TargetRegions, ImageROI)</l>
-<c></c>
 <c></c>
 <l>decompose3(ImageROI, R, G, B)</l>
 <l>rgb1_to_gray(ImageROI, GrayImage)</l>
