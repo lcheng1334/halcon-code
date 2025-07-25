@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>* ImagePath := 'F:/Detect_datasets/钽电容最终数据集/0718/中/崩缺裂纹.bmp'</l>
+<c></c>
+<l>* read_image (Image, ImagePath)</l>
+<c></c>
+<l>* decompose3 (Image, R, G, B)</l>
+<l>* rgb1_to_gray (Image, GrayImage)</l>
+<l>* smooth_image (R, ImageSmooth, 'gauss', 6)</l>
+<l>* threshold (ImageSmooth , Region, 70, 170)</l>
+<l>* fill_up (Region, RegionFillUp)</l>
+<l>* orientation_region(RegionFillUp, Phi)</l>
+<c></c>
+<l>* smallest_rectangle2(RegionFillUp, Row, Column, Phi, Length1, Length2)</l>
+<l>* dev_display (Image)</l>
+<l>* dev_display (RegionFillUp)</l>
+<c></c>
+<c>* 上、下、左、右缩小像素</c>
+<l>* shrink_top := 10</l>
+<l>* shrink_bottom := 20</l>
+<l>* shrink_left := 15</l>
+<l>* shrink_right := 5</l>
+<c></c>
+<c></c>
+<c>* 生成缩小后的矩形Region</c>
+<l>* gen_rectangle2(RectangleShrinked, Row, Column, Phi, Length1, Length2)</l>
+<l>* dev_display (Image)</l>
+<l>* dev_display (RectangleShrinked)</l>
+<c></c>
+<c></c>
+<l>ImagePath := 'F:/Detect_datasets/钽电容最终数据集/0718/中/崩缺裂纹.bmp'</l>
+<c></c>
+<c>* 读取图像</c>
+<l>read_image (Image, ImagePath)</l>
+<c></c>
+<c>* 分解RGB通道并转换为灰度图</c>
+<l>decompose3 (Image, R, G, B)</l>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<c></c>
+<c>* 平滑处理并阈值分割</c>
+<l>smooth_image (R, ImageSmooth, 'gauss', 6)</l>
+<l>threshold (ImageSmooth, Region, 70, 170)</l>
+<l>fill_up (Region, RegionFillUp)</l>
+<c></c>
+<c>* 获取区域方向和最小外接矩形</c>
+<l>orientation_region (RegionFillUp, Phi)</l>
+<l>smallest_rectangle2 (RegionFillUp, Row, Column, Phi, Length1, Length2)</l>
+<c></c>
+<l>gen_rectangle2 (RegionOrigin, Row, Column, Phi, Length1, Length2)</l>
+<l>dev_display (Image)</l>
+<l>dev_display (RegionOrigin)</l>
+<c></c>
+<c>* 定义下上右左3缩进像素</c>
+<l>shrink_top := 15</l>
+<l>shrink_bottom := 25</l>
+<l>shrink_left := 22</l>
+<l>shrink_right := 30</l>
+<c></c>
+<c>* 计算缩小后的矩形参数</c>
+<l>NewLength1 := Length1 - (shrink_left + shrink_right)</l>
+<l>NewLength2 := Length2 - (shrink_top + shrink_bottom)</l>
+<c></c>
+<c>* 计算中心点偏移（考虑不对称缩进）</c>
+<l>OffsetX := (shrink_right - shrink_left) / 2.0</l>
+<l>OffsetY := (shrink_bottom - shrink_top) / 2.0</l>
+<l>NewRow := Row + OffsetY</l>
+<l>NewColumn := Column + OffsetX</l>
+<c></c>
+<c>* 生成缩小后的矩形Region</c>
+<l>gen_rectangle2 (RectangleShrinked, NewRow, NewColumn, Phi, NewLength1, NewLength2)</l>
+<c></c>
+<c>* 显示结果</c>
+<l>dev_display (Image)</l>
+<l>dev_display (RectangleShrinked)</l>
+<c></c>
+<l>reduce_domain (R, RectangleShrinked, ImageReduced)</l>
+<c></c>
+<l>smooth_image (ImageReduced, ImageSmooth1, 'deriche2', 0.5)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

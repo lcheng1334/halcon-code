@@ -46,12 +46,12 @@
 <c></c>
 <l>tuple_select (Files, I, ImagePath)   </l>
 <c></c>
-<l>ImagePath := 'D:/微信聊天记录/xwechat_files/wxid_7y9vg6av1y8122_9924/msg/file/2025-07/20250715/暗裂纹/Image_20250715115112552.bmp'</l>
+<l>ImagePath := 'D:/微信聊天记录/xwechat_files/wxid_7y9vg6av1y8122_9924/msg/file/2025-07/0718/中/裂纹.bmp'</l>
 <c></c>
 <l>read_image (demo_Image, ImagePath)</l>
 <l>get_image_size (demo_Image, Width, Height)</l>
 <l>rgb1_to_gray (demo_Image, GrayImage)</l>
-<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
+<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 2)</l>
 <l>* binary_threshold(SmoothedImage, Regions, 'max_separability', 'dark', UsedThreshold)</l>
 <l>* auto_threshold (SmoothedImage, Regions2, 4)</l>
 <l>edges_sub_pix (GrayImage, Edges, 'canny', 5, 20, 40)</l>

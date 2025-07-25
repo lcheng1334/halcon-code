@@ -13,7 +13,7 @@
 <c>    </c>
 <l>tuple_select (Files, I, ImagePath) </l>
 <c></c>
-<l>ImagePath := 'D:/微信聊天记录/xwechat_files/wxid_7y9vg6av1y8122_9924/msg/file/2025-07/20250715/崩缺/Image_20250715114555699.bmp'</l>
+<l>ImagePath := 'F:/Detect_datasets/钽电容最终数据集/0718/中/崩缺.bmp'</l>
 <c></c>
 <c></c>
 <l>read_image (Image, ImagePath)</l>
@@ -22,7 +22,7 @@
 <c>* 定义ROI区域</c>
 <l>rgb1_to_gray (Image, GrayImage)</l>
 <l>smooth_image(GrayImage, SmoothedImage, 'gauss', 5)</l>
-<l>threshold (SmoothedImage, Regions, 90, 110)</l>
+<l>threshold (SmoothedImage, Regions, 70, 255)</l>
 <l>closing_circle(Regions, RegionClosing, 5)</l>
 <l>fill_up (RegionClosing, RegionFillUp)</l>
 <l>connection (RegionFillUp, ConnectedRegions)</l>
@@ -33,9 +33,14 @@
 <l>dev_display (Image)</l>
 <l>dev_display (TargetRegions2)</l>
 <c></c>
+<l>dev_display (Image)</l>
+<l>threshold (SmoothedImage, Regions, 80, 100)</l>
+<l>connection (Regions, ConnectedRegions1)</l>
+<l>area_center (ConnectedRegions1, Area3, Row1, Column1)</l>
+<l>select_shape (ConnectedRegions1, SelectedRegions, 'area', 'and', 15000, 9999999999)</l>
 <c></c>
-<l>threshold (SmoothedImage, Regions, 130, 180)</l>
-<l>dilation_circle (Regions, RegionDilation, 9)</l>
+<c></c>
+<c></c>
 <l>fill_up (RegionDilation, RegionFillUp1)</l>
 <l>connection (RegionFillUp1, ConnectedRegions1)</l>
 <l>area_center (ConnectedRegions1, Area3, Row1, Column1)</l>

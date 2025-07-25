@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="24.11.1.0">
+<procedure name="main">
+<interface/>
+<body>
+<c></c>
+<l>ImagePath := 'F:/Detect_datasets/钽电容最终数据集/崩缺/2.bmp'</l>
+<c>* 读取图像</c>
+<l>read_image (Image, ImagePath)</l>
+<c>* 分解RGB通道并转换为灰度图</c>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<c></c>
+<c>* 平滑处理并阈值分割</c>
+<l>smooth_image (GrayImage, ImageSmooth, 'gauss', 6)</l>
+<l>threshold (ImageSmooth, Region, 0, 100)</l>
+<l>fill_up (Region, RegionFillUp)</l>
+<c>* 获取区域方向和最小外接矩形</c>
+<l>orientation_region (RegionFillUp, Phi)</l>
+<l>smallest_rectangle2 (RegionFillUp, Row, Column, Phi, Length1, Length2)</l>
+<l>gen_rectangle2 (RegionOrigin, Row, Column, Phi, Length1, Length2)</l>
+<c></c>
+<c>* 定义下上右左3缩进像素</c>
+<l>shrink_top := 6</l>
+<l>shrink_bottom := 28</l>
+<l>shrink_left := -12</l>
+<l>shrink_right := 156</l>
+<c></c>
+<c>* 计算缩小后的矩形参数</c>
+<l>NewLength1 := Length1 - (shrink_left + shrink_right)</l>
+<l>NewLength2 := Length2 - (shrink_top + shrink_bottom)</l>
+<c></c>
+<c>* 计算中心点偏移（考虑不对称缩进）</c>
+<l>OffsetX := (shrink_right - shrink_left) / 2.0</l>
+<l>OffsetY := (shrink_bottom - shrink_top) / 2.0</l>
+<l>NewRow := Row + OffsetY</l>
+<l>NewColumn := Column + OffsetX</l>
+<c></c>
+<c>* 生成缩小后的矩形Region</c>
+<l>gen_rectangle2 (RectangleShrinked, NewRow, NewColumn, Phi, NewLength1, NewLength2)</l>
+<c></c>
+<l>reduce_domain (GrayImage, RectangleShrinked, ImageROI)</l>
+<c></c>
+<l>dev_display (Image)</l>
+<l>dev_display (ImageROI)</l>
+<c></c>
+<c>** region区域</c>
+<c></c>
+<c></c>
+<l>* ImagePath := 'F:/Detect_datasets/钽电容最终数据集/崩缺/2.bmp'</l>
+<c></c>
+<c>* 读取图像</c>
+<l>* read_image (Image, ImagePath)</l>
+<c>* 分解RGB通道并转换为灰度图</c>
+<l>* rgb1_to_gray (Image, GrayImage)</l>
+<l>* Front_region (GrayImage, ImageROI)</l>
+<c></c>
+<l>* Front_Print_region (GrayImage, ImageROI)</l>
+<c></c>
+<l>* Front_Character_region (GrayImage, ImageROI)</l>
+<c></c>
+<c></c>
+<c></c>
+<l>* dev_display (Image)</l>
+<l>* dev_display (ImageROI)</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="Front_region">
+<interface>
+<io>
+<par name="GrayImage" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="ImageROI" base_type="iconic" dimension="0"/>
+</oo>
+</interface>
+<body>
+<c>* 平滑处理并阈值分割</c>
+<l>smooth_image (GrayImage, ImageSmooth, 'gauss', 6)</l>
+<l>threshold (ImageSmooth, Region, 70, 170)</l>
+<l>fill_up (Region, RegionFillUp)</l>
+<c>* 获取区域方向和最小外接矩形</c>
+<l>orientation_region (RegionFillUp, Phi)</l>
+<l>smallest_rectangle2 (RegionFillUp, Row, Column, Phi, Length1, Length2)</l>
+<l>gen_rectangle2 (RegionOrigin, Row, Column, Phi, Length1, Length2)</l>
+<c></c>
+<c>* 定义下上右左3缩进像素</c>
+<l>shrink_top := 6</l>
+<l>shrink_bottom := 28</l>
+<l>shrink_left := 28</l>
+<l>shrink_right := 30</l>
+<c></c>
+<c>* 计算缩小后的矩形参数</c>
+<l>NewLength1 := Length1 - (shrink_left + shrink_right)</l>
+<l>NewLength2 := Length2 - (shrink_top + shrink_bottom)</l>
+<c></c>
+<c>* 计算中心点偏移（考虑不对称缩进）</c>
+<l>OffsetX := (shrink_right - shrink_left) / 2.0</l>
+<l>OffsetY := (shrink_bottom - shrink_top) / 2.0</l>
+<l>NewRow := Row + OffsetY</l>
+<l>NewColumn := Column + OffsetX</l>
+<c></c>
+<c>* 生成缩小后的矩形Region</c>
+<l>gen_rectangle2 (RectangleShrinked, NewRow, NewColumn, Phi, NewLength1, NewLength2)</l>
+<c></c>
+<l>reduce_domain (GrayImage, RectangleShrinked, ImageROI)</l>
+<l>return ()</l>
+</body>
+<docu id="Front_region">
+<parameters>
+<parameter id="GrayImage"/>
+<parameter id="ImageROI"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="Front_Print_region">
+<interface>
+<io>
+<par name="GrayImage" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="ImageROI" base_type="iconic" dimension="0"/>
+</oo>
+</interface>
+<body>
+<c>* 平滑处理并阈值分割</c>
+<l>smooth_image (GrayImage, ImageSmooth, 'gauss', 3)</l>
+<l>threshold (ImageSmooth, Region, 70, 170)</l>
+<l>fill_up (Region, RegionFillUp)</l>
+<c>* 获取区域方向和最小外接矩形</c>
+<l>orientation_region (RegionFillUp, Phi)</l>
+<l>smallest_rectangle2 (RegionFillUp, Row, Column, Phi, Length1, Length2)</l>
+<l>gen_rectangle2 (RegionOrigin, Row, Column, Phi, Length1, Length2)</l>
+<c></c>
+<c>* 定义下上右左3缩进像素</c>
+<l>shrink_top := 6</l>
+<l>shrink_bottom := 28</l>
+<l>shrink_left := 648</l>
+<l>shrink_right := -180</l>
+<c></c>
+<c></c>
+<c>* 计算缩小后的矩形参数</c>
+<l>NewLength1 := Length1 - (shrink_left + shrink_right)</l>
+<l>NewLength2 := Length2 - (shrink_top + shrink_bottom)</l>
+<c></c>
+<c>* 计算中心点偏移（考虑不对称缩进）</c>
+<l>OffsetX := (shrink_right - shrink_left) / 2.0</l>
+<l>OffsetY := (shrink_bottom - shrink_top) / 2.0</l>
+<l>NewRow := Row + OffsetY</l>
+<l>NewColumn := Column + OffsetX</l>
+<c></c>
+<c>* 生成缩小后的矩形Region</c>
+<l>gen_rectangle2 (RectangleShrinked, NewRow, NewColumn, Phi, NewLength1, NewLength2)</l>
+<c></c>
+<l>reduce_domain (GrayImage, RectangleShrinked, ImageROI)</l>
+<l>return ()</l>
+</body>
+<docu id="Front_Print_region">
+<parameters>
+<parameter id="GrayImage"/>
+<parameter id="ImageROI"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="Front_Character_region">
+<interface>
+<io>
+<par name="GrayImage" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="ImageROI" base_type="iconic" dimension="0"/>
+</oo>
+</interface>
+<body>
+<c>* 平滑处理并阈值分割</c>
+<l>smooth_image (GrayImage, ImageSmooth, 'gauss', 3)</l>
+<l>threshold (ImageSmooth, Region, 70, 170)</l>
+<l>fill_up (Region, RegionFillUp)</l>
+<c>* 获取区域方向和最小外接矩形</c>
+<l>orientation_region (RegionFillUp, Phi)</l>
+<l>smallest_rectangle2 (RegionFillUp, Row, Column, Phi, Length1, Length2)</l>
+<l>gen_rectangle2 (RegionOrigin, Row, Column, Phi, Length1, Length2)</l>
+<c></c>
+<c>* 定义下上右左3缩进像素</c>
+<l>shrink_top := 6</l>
+<l>shrink_bottom := 28</l>
+<l>shrink_left := 648</l>
+<l>shrink_right := -180</l>
+<c></c>
+<c></c>
+<c>* 计算缩小后的矩形参数</c>
+<l>NewLength1 := Length1 - (shrink_left + shrink_right)</l>
+<l>NewLength2 := Length2 - (shrink_top + shrink_bottom)</l>
+<c></c>
+<c>* 计算中心点偏移（考虑不对称缩进）</c>
+<l>OffsetX := (shrink_right - shrink_left) / 2.0</l>
+<l>OffsetY := (shrink_bottom - shrink_top) / 2.0</l>
+<l>NewRow := Row + OffsetY</l>
+<l>NewColumn := Column + OffsetX</l>
+<c></c>
+<c>* 生成缩小后的矩形Region</c>
+<l>gen_rectangle2 (RectangleShrinked, NewRow, NewColumn, Phi, NewLength1, NewLength2)</l>
+<c></c>
+<l>reduce_domain (GrayImage, RectangleShrinked, ImageROI)</l>
+<l>return ()</l>
+</body>
+<docu id="Front_Character_region">
+<parameters>
+<parameter id="GrayImage"/>
+<parameter id="ImageROI"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>
