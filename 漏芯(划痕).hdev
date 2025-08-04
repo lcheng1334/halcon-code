@@ -3,84 +3,100 @@
 <procedure name="main">
 <interface/>
 <body>
-<c>* 设置文件夹路径</c>
-<l>FolderPath := 'F:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/漏芯' </l>
+<c>* 设置图像路径（请替换为空路径）</c>
+<l>ImagePath := ''</l>
+<l>read_image(Image, ImagePath)</l>
 <c></c>
-<l>list_files (FolderPath, ['files'], Files)</l>
-<l>tuple_length (Files, Length)</l>
+<c>* 将图像转换为灰度图</c>
+<l>rgb1_to_gray(Image, GrayImage)</l>
 <c></c>
-<l>for I := 0 to Length-1 by 1</l>
-<c>    </c>
-<l>tuple_select (Files, I, ImagePath)   </l>
-<l>read_image (Image, ImagePath)</l>
-<c></c>
-<c>* 定义ROI区域</c>
-<l>rgb1_to_gray (Image, GrayImage)</l>
+<c>* 使用高斯滤波进行平滑处理</c>
 <l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
 <c></c>
-<l>*   binary_threshold (SmoothedImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
-<l>threshold (SmoothedImage, Region, 50, 120)</l>
+<c>* 使用固定阈值提取较暗区域（可替换为 binary_threshold 以实现自动阈值）</c>
+<l>threshold(SmoothedImage, Region, 50, 120)</l>
 <c></c>
-<l>fill_up (Region, RegionFillUp)</l>
-<l>closing_circle (RegionFillUp, RegionClosing, 5)</l>
-<l>connection (RegionClosing, ConnectedRegions)</l>
-<l>area_center (ConnectedRegions, Area, Row, Column)</l>
-<l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
-<l>reduce_domain (Image, TargetRegions, ImageROI)</l>
+<c>* 填充区域空洞</c>
+<l>fill_up(Region, RegionFillUp)</l>
 <c></c>
-<l>decompose3(ImageROI, R, G, B)</l>
-<l>rgb1_to_gray(ImageROI, GrayImage)</l>
+<c>* 闭运算连接区域边缘</c>
+<l>closing_circle(RegionFillUp, RegionClosing, 5)</l>
 <c></c>
-<l>smooth_image(G, SmoothedImage, 'gauss', 3)</l>
-<c></c>
-<c>* 灰度增强</c>
-<l>scale_image(SmoothedImage, EnhancedImageROI, 2, -150)</l>
-<c></c>
-<c>* 阈值处理提取疑似缺陷</c>
-<l>threshold(EnhancedImageROI, DefectRegion, 0, 40)</l>
-<c> </c>
-<l>fill_up (DefectRegion, RegionFillUp1)</l>
-<c></c>
-<l>closing_circle(RegionFillUp1, RegionClosing, 8)</l>
-<c></c>
-<c>* 连通区域分析</c>
+<c>* 连通分析分割区域</c>
 <l>connection(RegionClosing, ConnectedRegions)</l>
 <c></c>
+<c>* 计算区域面积与中心</c>
+<l>area_center(ConnectedRegions, Area, Row, Column)</l>
 <c></c>
-<l>area_center (ConnectedRegions, Area, Row, Column)</l>
+<c>* 筛选面积在 200000 以上的目标区域</c>
+<l>select_shape(ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
 <c></c>
+<c>* 提取目标区域内的图像 ROI</c>
+<l>reduce_domain(Image, TargetRegions, ImageROI)</l>
+<c></c>
+<c>* 分解 RGB 通道</c>
+<l>decompose3(ImageROI, R, G, B)</l>
+<c></c>
+<c>* 转换为灰度图（后续处理）</c>
+<l>rgb1_to_gray(ImageROI, GrayImage)</l>
+<c></c>
+<c>* 对绿色通道进行平滑处理（增强细节）</c>
+<l>smooth_image(G, SmoothedImage, 'gauss', 3)</l>
+<c></c>
+<c>* 灰度拉伸增强缺陷特征</c>
+<l>scale_image(SmoothedImage, EnhancedImageROI, 2, -150)</l>
+<c></c>
+<c>* 阈值分割提取潜在缺陷区域</c>
+<l>threshold(EnhancedImageROI, DefectRegion, 0, 40)</l>
+<c></c>
+<c>* 填充区域空洞</c>
+<l>fill_up(DefectRegion, RegionFillUp1)</l>
+<c></c>
+<c>* 闭运算连接缺陷边界</c>
+<l>closing_circle(RegionFillUp1, RegionClosing, 8)</l>
+<c></c>
+<c>* 连通区域提取各独立缺陷</c>
+<l>connection(RegionClosing, ConnectedRegions)</l>
+<c></c>
+<c>* 计算所有区域的面积与中心</c>
+<l>area_center(ConnectedRegions, Area, Row, Column)</l>
+<c></c>
+<c>* 筛选面积在 200~5000 范围内的有效缺陷</c>
 <l>select_shape(ConnectedRegions, SelectedRegions, 'area', 'and', 200, 5000)</l>
 <c></c>
-<l>area_center (SelectedRegions, Areas_final, Rows, Cols)</l>
+<c>* 再次计算缺陷区域的面积和中心</c>
+<l>area_center(SelectedRegions, Areas_final, Rows, Cols)</l>
 <c></c>
+<c>* 将缺陷区域用红色填充在 R 通道</c>
+<l>* paint_region(SelectedRegions, R, R_painted, 255, 'fill')</l>
 <c></c>
-<l>paint_region(SelectedRegions , R, R_painted, 255, 'fill')  </l>
-<l>paint_region(SelectedRegions, G, G_painted, 0, 'fill')    </l>
-<l>paint_region(SelectedRegions, B, B_painted, 0, 'fill')    </l>
-<l>compose3(R_painted, G_painted, B_painted, ImagePainted)</l>
+<c>* G、B 通道置零（保持背景）</c>
+<l>* paint_region(SelectedRegions, G, G_painted, 0, 'fill')</l>
+<l>* paint_region(SelectedRegions, B, B_painted, 0, 'fill')</l>
 <c></c>
-<l>dev_display(Image)</l>
-<c></c>
-<l>dev_display(ImagePainted)</l>
-<c></c>
-<c></c>
-<c></c>
-<l>IsOk := 1</l>
-<l>if (Areas_final &gt; 0)</l>
-<l>    IsOk := 0</l>
-<l>endif</l>
-<c></c>
-<c></c>
+<c>* 合成为彩色图像用于显示</c>
+<l>* compose3(R_painted, G_painted, B_painted, ImagePainted)</l>
 <c></c>
 <c>* 显示原图</c>
 <l>dev_display(Image)</l>
 <c></c>
-<c>* 显示筛选后的缺陷区域（满足面积条件）</c>
+<c>* 显示带有缺陷高亮的图像</c>
+<l>* dev_display(ImagePainted)</l>
+<c></c>
+<c>* 初始化检测状态为合格</c>
+<l>IsOk := 1</l>
+<c></c>
+<c>* 如果检测出缺陷（面积 &gt; 0），设置为不合格</c>
+<l>if (Areas_final &gt; 0)</l>
+<l>    IsOk := 0</l>
+<l>endif</l>
+<c></c>
+<c>* 显示原图</c>
+<l>dev_display(Image)</l>
+<c></c>
+<c>* 红色高亮显示最终缺陷区域</c>
 <l>dev_set_color('red')</l>
 <l>dev_display(SelectedRegions)</l>
-<c></c>
-<l>wait_seconds(1)</l>
-<l>endfor</l>
 <c></c>
 </body>
 <docu id="main">

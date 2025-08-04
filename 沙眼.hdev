@@ -3,63 +3,72 @@
 <procedure name="main">
 <interface/>
 <body>
-<c>* 1. 读取文件列表</c>
-<l>list_files('C:/Users/19255/Desktop/demo-0708/沙眼', ['files'], Files)</l>
-<l>tuple_length(Files, Length)</l>
+<c>* 设置图像路径</c>
+<l>ImagePath := 'C:/Users/19255/Desktop/测试/康视达/500W相机---10000us/沙眼/Image_20250715143619452.bmp'</l>
 <c></c>
-<c>* 2. 遍历每张图片</c>
-<l>for I := 0 to Length-1 by 1</l>
-<l>tuple_select(Files, I, ImagePath)</l>
-<c></c>
-<l>ImagePath := 'F:/Detect_datasets/钽电容最终数据集/0718/中/崩缺.bmp'</l>
-<c></c>
+<c>* 读取图像</c>
 <l>read_image(Image, ImagePath)</l>
 <c></c>
-<c>* 分解RGB通道并转换为灰度图</c>
+<c>* 分解为RGB通道</c>
 <l>decompose3(Image, R, G, B)</l>
-<l>rgb1_to_gray(Image, GrayImage)</l>
 <c></c>
+<c>* 转换为灰度图（如后续不使用可省略）</c>
+<l>rgb1_to_gray(Image, GrayImage)</l>
 <c></c>
 <c>* 获取图像尺寸</c>
 <l>get_image_size(Image, Width, Height)</l>
 <c></c>
+<c>* 对红色通道进行大尺度高斯滤波（模糊背景）</c>
 <l>smooth_image(R, SmoothedImage, 'gauss', 10)</l>
-<l>threshold (SmoothedImage, Region, 70, 255)</l>
-<l>fill_up (Region, RegionFillUp)</l>
-<l>connection (RegionFillUp, ConnectedRegions1)</l>
-<l>area_center (ConnectedRegions1, Area, Row, Column)</l>
-<l>select_shape (ConnectedRegions1, SelectedRegions1, 'area', 'and', 400000, 999999)</l>
-<l>dev_display (Image)</l>
-<l>dev_display (SelectedRegions1)</l>
-<l>reduce_domain (R, SelectedRegions1, ImageReduced)</l>
 <c></c>
-<l>smooth_image(ImageReduced, SmoothedImage, 'gauss', 3)</l>
+<c>* 阈值分割提取高亮区域</c>
+<l>threshold(SmoothedImage, Region, 70, 255)</l>
 <c></c>
-<c>* 灰度增强</c>
-<l>scale_image(SmoothedImage, EnhancedImageROI, 2, -100)</l>
+<c>* 填补区域内孔洞</c>
+<l>fill_up(Region, RegionFillUp)</l>
 <c></c>
+<c>* 连通分析，将分割出的区域进行独立编号</c>
+<l>connection(RegionFillUp, ConnectedRegions1)</l>
 <c></c>
-<c>* 阈值处理提取疑似缺陷</c>
-<l>threshold(EnhancedImageROI, DefectRegion, 0, 50)</l>
+<c>* 计算各区域的面积和中心坐标</c>
+<l>area_center(ConnectedRegions1, Area, Row, Column)</l>
 <c></c>
+<c>* 筛选面积较大的目标区域（剔除小噪声）</c>
+<l>select_shape(ConnectedRegions1, SelectedRegions1, 'area', 'and', 400000, 999999)</l>
+<c></c>
+<c>* 显示原始图像</c>
+<l>dev_display(Image)</l>
+<c></c>
+<c>* 显示提取到的主目标区域</c>
+<l>dev_display(SelectedRegions1)</l>
+<c></c>
+<c>* 将后续处理限制在目标区域内（只处理红色通道）</c>
+<l>reduce_domain(R, SelectedRegions1, ImageReduced)</l>
+<c></c>
+<c>* 对红色通道再做一次平滑处理（小尺度）</c>
+<l>smooth_image(R, SmoothedImage, 'gauss', 5)</l>
+<c></c>
+<c>* 线性增强图像对比度（突出细节）</c>
+<l>scale_image(SmoothedImage, EnhancedImageROI, 2, -200)</l>
+<c></c>
+<c>* 阈值提取疑似缺陷区域（暗点）</c>
+<l>threshold(EnhancedImageROI, DefectRegion, 0, 30)</l>
 <c></c>
 <c>* 连通区域分析</c>
 <l>connection(DefectRegion, ConnectedRegions)</l>
+<c></c>
+<c>* 筛选面积在 2000~5000 像素之间的缺陷区域</c>
 <l>select_shape(ConnectedRegions, SelectedRegions, 'area', 'and', 2000, 5000)</l>
 <c></c>
 <c>* 显示原图</c>
 <l>dev_display(Image)</l>
 <c></c>
-<c>* 显示筛选后的缺陷区域（满足面积条件）</c>
+<c>* 设置显示颜色为红色</c>
 <l>dev_set_color('red')</l>
+<c></c>
+<c>* 显示最终缺陷区域</c>
 <l>dev_display(DefectRegion)</l>
 <c></c>
-<c></c>
-<c></c>
-<c></c>
-<l>wait_seconds(1)</l>
-<l>endfor</l>
-<c> </c>
 </body>
 <docu id="main">
 <parameters/>

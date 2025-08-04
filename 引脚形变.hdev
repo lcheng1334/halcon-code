@@ -3,74 +3,72 @@
 <procedure name="main">
 <interface/>
 <body>
-<l>FolderPath := 'D:/code/dataset/钽电容最终数据集/钽电容六面图/底面' </l>
-<c></c>
-<l>list_files (FolderPath, ['files'], Files)</l>
-<l>tuple_length (Files, Length)</l>
-<c></c>
-<l>for I := 0 to Length-1 by 1</l>
-<c></c>
-<l>tuple_select (Files, I, ImagePath)   </l>
-<c></c>
-<c></c>
-<l>ImagePath := 'D:/code/dataset/崩缺/33.bmp'</l>
-<c></c>
-<c></c>
+<c>* 设置图像路径并读取图像</c>
+<l>ImagePath := 'W:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/暗裂纹/1.bmp'</l>
 <l>read_image (Image, ImagePath)</l>
 <c></c>
+<c>* 将图像转为灰度图</c>
+<l>rgb1_to_gray(Image, GrayImage)</l>
 <c></c>
+<c>* 使用高斯滤波对图像进行平滑，降低噪声</c>
+<l>smooth_image(GrayImage, Smooth, 'gauss', 6)</l>
 <c></c>
+<c>* 进行阈值分割，提取前景区域</c>
+<l>threshold(Smooth, Region, 90, 120)</l>
 <c></c>
-<c>* 定义ROI区域</c>
-<l>rgb1_to_gray (Image, GrayImage)</l>
-<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
-<c> </c>
-<l>threshold (SmoothedImage, Regions, 0, 100)</l>
-<l>closing_circle (Regions, RegionClosing, 5)</l>
-<l>fill_up (RegionClosing, RegionFillUp)</l>
-<l>connection (RegionFillUp, ConnectedRegions)</l>
-<l>area_center (ConnectedRegions, Area, Row, Column)</l>
-<l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
-<l>reduce_domain (Image, TargetRegions, ImageROI)</l>
-<l>dev_display (Image)</l>
-<l>dev_display (TargetRegions)</l>
+<c>* 填充区域中的空洞</c>
+<l>fill_up(Region, RegionFill)</l>
 <c></c>
-<l>decompose3 (ImageROI, R, G, B)</l>
-<l>rgb1_to_gray (ImageROI, GrayImage)</l>
+<c>* 获取前景区域的主方向角 Phi（用于后续旋转对齐）</c>
+<l>orientation_region(RegionFill, Phi)</l>
 <c></c>
-<l>auto_threshold (R, Regions1, 2)</l>
-<l>binary_threshold (R, Region1, 'max_separability', 'dark', UsedThreshold)</l>
+<c>* 获取最小外接旋转矩形的中心点（Row, Column）、角度（Phi）、长短轴</c>
+<l>smallest_rectangle2(RegionFill, Row, Column, Phi, Length1, Length2)</l>
 <c></c>
-<l>threshold (R, Region, 60, 120)</l>
-<l>    fill_up (Region, RegionFillUp)</l>
-<l>    difference (RegionFillUp, Region, RegionDifference)</l>
-<c>    </c>
-<l>        dev_display (Image)</l>
-<l>    dev_display (RegionDifference)</l>
-<l>    closing_circle (RegionDifference, RegionClosing, 4)</l>
+<c>* 创建仿射变换矩阵，将角度为 Phi 的矩形旋转至水平（角度变为 0）</c>
+<l>vector_angle_to_rigid(Row, Column, Phi, Row, Column, 0, HomMat2D)</l>
 <c></c>
-<l>    fill_up (RegionClosing, RegionFillUp1)</l>
-<l>    connection (RegionFillUp1 , ConnectedRegions)</l>
-<l>    area_center (ConnectedRegions, Area, Row, Column)</l>
-<l>    select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 10000, 9999999)</l>
-<l>    area_center (SelectedRegions, Area1, Row1, Column1)</l>
-<l>    dev_display (Image)</l>
-<l>    dev_display (SelectedRegions)</l>
+<c>* 对图像应用仿射变换，将图像旋转对齐</c>
+<l>affine_trans_image(Image, RotatedImage, HomMat2D, 'constant', 'false')</l>
 <c></c>
-<l>    area1 := Area1[0]</l>
-<l>    area2 := Area1[1]</l>
+<c>* 对前景区域也做同样的旋转</c>
+<l>affine_trans_region(RegionFill, RotatedRegion, HomMat2D, 'nearest_neighbor')</l>
 <c></c>
-<l>dev_disp_text ('area1 = ' + area1, 'window', 20, 20, 'black', [], [])</l>
-<l>dev_disp_text ('area2 = ' + area2, 'window', 40, 20, 'black', [], [])</l>
+<c>* 设置各边的缩进像素数（单位：像素）</c>
+<l>shrink_top := 150</l>
+<l>shrink_bottom := 150</l>
+<l>shrink_left := 100</l>
+<l>shrink_right := 380</l>
 <c></c>
-<c>    </c>
-<c>    </c>
-<c> </c>
-<c>    </c>
-<c>    </c>
-<c>    </c>
-<l>wait_seconds(1)</l>
-<l>endfor</l>
+<c>* 获取旋转对齐后的区域的边界框（左上角 R1,C1 和右下角 R2,C2）</c>
+<l>smallest_rectangle1(RotatedRegion, R1, C1, R2, C2)</l>
+<c></c>
+<c>* 按照设置的缩进值，计算缩小后的矩形边界坐标</c>
+<l>NewR1 := R1 + shrink_top</l>
+<l>NewR2 := R2 - shrink_bottom</l>
+<l>NewC1 := C1 + shrink_left</l>
+<l>NewC2 := C2 - shrink_right</l>
+<c></c>
+<c>* 生成缩小后的 axis-aligned ROI 区域（此时矩形是水平的）</c>
+<l>gen_rectangle1(ShrinkedRect, NewR1, NewC1, NewR2, NewC2)</l>
+<c></c>
+<c>* 计算仿射变换矩阵的逆矩阵（用于将 ROI 区域旋转回原图空间）</c>
+<l>hom_mat2d_invert(HomMat2D, HomMatInv)</l>
+<c></c>
+<c>* 将缩小后的矩形区域映射回原图角度，得到最终 ROI</c>
+<l>affine_trans_region(ShrinkedRect, FinalROI, HomMatInv, 'nearest_neighbor')</l>
+<c></c>
+<c>* 显示原始图像</c>
+<l>dev_display(Image)</l>
+<c></c>
+<c>* 设置显示颜色为绿色</c>
+<l>dev_set_color('green')</l>
+<c></c>
+<c>* 显示最终计算得到的 ROI 区域</c>
+<l>dev_display(FinalROI)</l>
+<c></c>
+<c>* 获取 ROI 区域的面积和中心坐标</c>
+<l>area_center (FinalROI, Area, Row1, Column1)</l>
 <c></c>
 </body>
 <docu id="main">

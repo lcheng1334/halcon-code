@@ -3,97 +3,90 @@
 <procedure name="main">
 <interface/>
 <body>
-<c>* 设置文件夹路径</c>
-<l>FolderPath := 'H:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/划痕' </l>
+<c>* 设置图像路径（此处为空，请替换为实际路径）</c>
+<l>ImagePath := ''</l>
+<l>read_image(Image, ImagePath)</l>
 <c></c>
-<l>list_files (FolderPath, ['files'], Files)</l>
-<l>tuple_length (Files, Length)</l>
+<c>* 将图像转换为灰度图</c>
+<l>rgb1_to_gray(Image, GrayImage)</l>
 <c></c>
-<l>for I := 0 to Length-1 by 1</l>
-<c>    </c>
-<l>tuple_select (Files, I, ImagePath)   </l>
-<l>read_image (Image, ImagePath)</l>
-<c></c>
-<c>*使用自动阈值分割图像前景区域</c>
-<l>rgb1_to_gray (Image, GrayImage)</l>
+<c>* 平滑处理去噪</c>
 <l>smooth_image(GrayImage, SmoothedImage, 'gauss', 3)</l>
-<l>binary_threshold (SmoothedImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
 <c></c>
+<c>* 使用最大类间方差自动阈值法提取暗背景区域</c>
+<l>binary_threshold(SmoothedImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<c></c>
+<c>* 使用灰度双峰分割法进一步提取区域</c>
 <l>auto_threshold(SmoothedImage, RegionThresh, 2)</l>
-<l>select_shape (RegionThresh, TargetRegions, 'area', 'and', 200000, 999999)</l>
-<l>area_center (TargetRegions, Area, Row, Column)</l>
-<l>sort_region (TargetRegions, SortedRegions, 'first_point', 'true', 'row')</l>
 <c></c>
+<c>* 筛选面积较大的前景区域</c>
+<l>select_shape(RegionThresh, TargetRegions, 'area', 'and', 200000, 999999)</l>
+<c></c>
+<c>* 计算区域面积与中心点</c>
+<l>area_center(TargetRegions, Area, Row, Column)</l>
+<c></c>
+<c>* 对区域按行坐标排序</c>
+<l>sort_region(TargetRegions, SortedRegions, 'first_point', 'true', 'row')</l>
+<c></c>
+<c>* 选择排序后的第二大区域（目标区域）</c>
 <l>select_obj(SortedRegions, SecondLargestRegion, 2)</l>
-<l>fill_up (SecondLargestRegion, RegionFillUp)</l>
 <c></c>
+<c>* 填充该区域的空洞</c>
+<l>fill_up(SecondLargestRegion, RegionFillUp)</l>
 <c></c>
-<l>threshold (GrayImage, Regions, 0, 130)</l>
-<l>fill_up (Regions, RegionFillUp)</l>
-<l>closing_circle (RegionFillUp, RegionClosing, 5)</l>
-<l>erosion_circle (RegionClosing, RegionErosion, 20)</l>
-<l>connection (RegionErosion, ConnectedRegions)</l>
-<l>area_center (ConnectedRegions, Area, Row, Column)</l>
-<l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
-<l>reduce_domain (Image, TargetRegions, ImageROI)</l>
+<c>* 阈值处理提取暗背景区域</c>
+<l>threshold(GrayImage, Regions, 0, 130)</l>
 <c></c>
+<c>* 填充区域</c>
+<l>fill_up(Regions, RegionFillUp)</l>
 <c></c>
-<l>decompose3 (ImageROI, R, G, B)</l>
+<c>* 闭运算连接区域边界</c>
+<l>closing_circle(RegionFillUp, RegionClosing, 5)</l>
+<c></c>
+<c>* 腐蚀操作收缩区域边缘（滤除噪声）</c>
+<l>erosion_circle(RegionClosing, RegionErosion, 20)</l>
+<c></c>
+<c>* 连接腐蚀后区域</c>
+<l>connection(RegionErosion, ConnectedRegions)</l>
+<c></c>
+<c>* 计算面积和中心</c>
+<l>area_center(ConnectedRegions, Area, Row, Column)</l>
+<c></c>
+<c>* 筛选面积较大的有效区域</c>
+<l>select_shape(ConnectedRegions, TargetRegions, 'area', 'and', 200000, 999999)</l>
+<c></c>
+<c>* 提取有效ROI区域</c>
+<l>reduce_domain(Image, TargetRegions, ImageROI)</l>
+<c></c>
+<c>* 分解 RGB 三通道（未直接使用 R/G）</c>
+<l>decompose3(ImageROI, R, G, B)</l>
+<c></c>
+<c>* 再次转换为灰度图</c>
 <l>rgb1_to_gray(ImageROI, GrayImageROI)</l>
 <c></c>
-<c>* 3. 平滑图像</c>
+<c>* 对蓝色通道进行高斯滤波（用于增强缺陷）</c>
 <l>smooth_image(B, SmoothImageROI, 'gauss', 2)</l>
 <c></c>
-<c>* 4. 灰度增强（线性映射）</c>
+<c>* 对图像进行灰度拉伸（增强对比度）</c>
 <l>scale_image(SmoothImageROI, EnhancedImageROI, 2, -100)</l>
 <c></c>
+<c>* 阈值提取可能的缺陷区域</c>
 <l>threshold(EnhancedImageROI, DefectRegion, 60, 90)</l>
 <c></c>
-<l>connection(DefectRegion, ConnectedRegions) </l>
+<c>* 连接缺陷区域</c>
+<l>connection(DefectRegion, ConnectedRegions)</l>
 <c></c>
-<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 400, 1000)</l>
+<c>* 筛选面积在 400 到 1000 之间的目标缺陷</c>
+<l>select_shape(ConnectedRegions, SelectedRegions, 'area', 'and', 400, 1000)</l>
 <c></c>
-<c>* 显示原图</c>
+<c>* 显示原始图像</c>
 <l>dev_display(Image)</l>
 <c></c>
-<c>* 显示筛选后的缺陷区域（满足面积条件）</c>
+<c>* 设置绘图颜色为红色</c>
 <l>dev_set_color('red')</l>
+<c></c>
+<c>* 显示最终选中的缺陷区域</c>
 <l>dev_display(SelectedRegions)</l>
-<c></c>
-<c></c>
-<l>wait_seconds(2)</l>
-<l>endfor</l>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c>* 7. 打开新窗口显示阈值图像（增强图像），并设置字体</c>
-<l>* get_image_size(EnhancedImageROI, Width, Height)</l>
-<l>* dev_close_window()</l>
-<l>* dev_open_window_fit_image(EnhancedImageROI, 0, 0, Width, Height, WindowHandle)</l>
-<l>* dev_set_window(WindowHandle)</l>
-<c></c>
-<c></c>
-<c>* 8. 显示增强图像作为背景</c>
-<l>* dev_display(EnhancedImageROI)</l>
-<c></c>
-<c>* 9. 遍历每个连通区域，显示轮廓和面积</c>
-<l>* count_obj(ConnectedRegions, Num)</l>
-<l>* for Index := 1 to Num by 1</l>
-<l>*     select_obj(ConnectedRegions, SingleRegion, Index)</l>
-<l>*     area_center(SingleRegion, Area, Row, Column)</l>
-<c></c>
-<c>    * 显示轮廓</c>
-<l>*     dev_set_color('green')</l>
-<l>*     dev_display(SingleRegion)</l>
-<c></c>
-<c>    * 显示面积（单位像素²）</c>
-<l>*     Text := 'Area: ' + Area$'.0f'</l>
-<l>*     disp_message(WindowHandle, Text, 'image', Row, Column, 'white', 'false')</l>
-<l>* endfor</l>
-<c></c>
-<c></c>
 <c></c>
 </body>
 <docu id="main">

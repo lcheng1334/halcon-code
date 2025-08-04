@@ -3,147 +3,120 @@
 <procedure name="main">
 <interface/>
 <body>
-<l>* smooth_image(g, SmoothImageROI, 'gauss', 2)</l>
-<l>* emphasize (SmoothImageROI, EnhancedImage, 10, 10, 1)</l>
-<c>* 灰度拉伸增强裂纹特征</c>
-<l>* scale_image(EnhancedImage, ScaledImage, 2, -120)</l>
-<c>* Canny 边缘检测提取裂纹边缘</c>
-<l>* edges_sub_pix(ScaledImage, Edges, 'canny', 0.5, 10, 20)</l>
-<l>* edges_image (ScaledImage, ImaAmp, ImaDir, 'canny', 1, 'nms', 20, 40)</l>
-<l>* threshold(ImaAmp, EdgeRegion, 30, 255)</l>
-<l>* union_adjacent_contours_xld(EdgeRegion, UnionContours, 10, 1, 'attr_keep')</l>
-<c>* 提取边缘区域内的方向值</c>
-<l>* reduce_domain(ImaDir, CrackContours, EdgeDirectionReduced)</l>
-<c>* 取出方向值</c>
-<l>* get_grayval(EdgeDirectionReduced, 512, 512, Direction)</l>
-<l>* gen_contour_region_xld(CrackContours, Contours, 'border')</l>
-<c>* 每条轮廓做拟合</c>
-<l>* fit_line_contour_xld(Contours, 'tukey', -1, 2, 15, 2, RowBegin, ColBegin, RowEnd, ColEnd, Nr, Nc, Dist)</l>
-<c>* 计算每条轮廓的整体方向</c>
-<l>* Angle := atan2(RowEnd - RowBegin, ColEnd - ColBegin)</l>
-<l>* pi := 3.141592653589793</l>
-<l>* AngleDeg := Angle * 180 / pi</l>
-<c>* 融合断裂边缘（重要！）</c>
-<l>* union_adjacent_contours_xld(Edges, UnionContours, 10, 1, 'attr_keep')</l>
-<c>* 只保留较长的裂纹线段</c>
-<l>* select_shape_xld(UnionContours, LongContours, 'contlength', 'and', 30, 99999)</l>
-<c>* 进一步保留细长的裂纹特征</c>
-<l>* select_shape_xld(LongContours, CrackContours, 'anisometry', 'and', 2, 99999)</l>
-<l>* connection (EdgeRegion, ConnectedRegions)</l>
-<l>* area_center(ConnectedRegions, Area1, Row, Column)</l>
-<l>* opening_circle (EdgeRegion, RegionOpening, 6)</l>
-<l>* dev_display(RegionOpening)</l>
+<c>* 设置图像路径</c>
+<l>ImagePath := 'W:/Detect_datasets/打光测试测试/康视达/130W相机---5000us,数字增益2.0/暗裂纹/Image_20250715144853673.bmp'</l>
 <c></c>
+<c>* 读取图像</c>
+<l>read_image(demo_Image, ImagePath)</l>
 <c></c>
-<c>* 设置文件夹路径</c>
-<l>FolderPath := 'D:/微信聊天记录/xwechat_files/wxid_7y9vg6av1y8122_9924/msg/file/2025-07/效果图2/暗裂纹' </l>
+<c>* 获取图像尺寸</c>
+<l>get_image_size(demo_Image, Width, Height)</l>
 <c></c>
-<l>list_files (FolderPath, ['files'], Files)</l>
-<l>tuple_length (Files, Length)</l>
+<c>* 将图像转换为灰度图</c>
+<l>rgb1_to_gray(demo_Image, GrayImage)</l>
 <c></c>
-<l>for I := 0 to Length-1 by 1</l>
+<c>* 对灰度图进行高斯平滑处理</c>
+<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 6)</l>
 <c></c>
+<c>* 提取边缘（用于可视化）</c>
+<l>edges_sub_pix(GrayImage, Edges, 'canny', 5, 20, 40)</l>
 <c></c>
-<l>tuple_select (Files, I, ImagePath)   </l>
+<c>* 显示灰度图与边缘图</c>
+<l>dev_display(GrayImage)</l>
+<l>dev_display(Edges)</l>
 <c></c>
-<l>ImagePath := 'D:/微信聊天记录/xwechat_files/wxid_7y9vg6av1y8122_9924/msg/file/2025-07/0718/中/裂纹.bmp'</l>
+<c>* 阈值处理提取目标区域</c>
+<l>threshold(SmoothedImage, Region, 140, 180)</l>
 <c></c>
-<l>read_image (demo_Image, ImagePath)</l>
-<l>get_image_size (demo_Image, Width, Height)</l>
-<l>rgb1_to_gray (demo_Image, GrayImage)</l>
-<l>smooth_image(GrayImage, SmoothedImage, 'gauss', 2)</l>
-<l>* binary_threshold(SmoothedImage, Regions, 'max_separability', 'dark', UsedThreshold)</l>
-<l>* auto_threshold (SmoothedImage, Regions2, 4)</l>
-<l>edges_sub_pix (GrayImage, Edges, 'canny', 5, 20, 40)</l>
-<l>dev_display (GrayImage)</l>
-<l>dev_display (Edges)</l>
+<c>* 填充区域内部空洞</c>
+<l>fill_up(Region, RegionFillUp)</l>
 <c></c>
-<l>threshold (SmoothedImage, Region, 120, 250)</l>
+<c>* 连接相邻区域</c>
+<l>connection(RegionFillUp, ConnectedRegions)</l>
 <c></c>
-<l>closing_circle (Region, RegionClosing, 3)</l>
-<l>fill_up (RegionClosing, RegionFillUp)</l>
-<l>connection (RegionFillUp, ConnectedRegions)</l>
-<l>area_center (ConnectedRegions, Area, Row, Column)</l>
-<l>select_shape (ConnectedRegions, TargetRegions, 'area', 'and', 50000, 999999999999)</l>
-<l>area_center (TargetRegions, Area1, Row, Column)</l>
+<c>* 计算连接区域的面积与中心点</c>
+<l>area_center(ConnectedRegions, Area, Row, Column)</l>
 <c></c>
-<l>dev_display (demo_Image)</l>
-<l>dev_display (TargetRegions)</l>
+<c>* 筛选出面积足够大的目标区域</c>
+<l>select_shape(ConnectedRegions, TargetRegions, 'area', 'and', 1000000, 999999999999)</l>
 <c></c>
-<l>* sort_region (TargetRegions, SortedRegions, 'first_point', 'true', 'row')</l>
-<l>* select_obj (SortedRegions, ObjectSelected1, 1)</l>
-<l>* select_obj (SortedRegions, ObjectSelected,1)</l>
-<l>* fill_up (ObjectSelected1, RegionFillUp1)</l>
-<l>* fill_up (ObjectSelected, RegionFillUp)</l>
-<l>* difference (RegionFillUp1, RegionFillUp, RegionDifference)</l>
-<l>reduce_domain (demo_Image, TargetRegions, ImageROI)</l>
-<c> </c>
+<c>* 再次计算目标区域的面积与中心</c>
+<l>area_center(TargetRegions, Area1, Row, Column)</l>
 <c></c>
+<c>* 显示原图与目标区域</c>
+<l>dev_display(demo_Image)</l>
+<l>dev_display(TargetRegions)</l>
 <c></c>
-<c>*图像ROI进行腐蚀操作</c>
-<l>* erosion_rectangle1 (ImageROI, RegionErosion, 35, 35)</l>
+<c>* 将图像限制在目标区域范围内</c>
+<l>reduce_domain(demo_Image, TargetRegions, ImageROI)</l>
 <c></c>
-<l>* reduce_domain(demo_Image, ImageROI, ImageROI)</l>
-<c></c>
+<c>* 转换目标ROI为灰度图</c>
 <l>rgb1_to_gray(ImageROI, GrayImageROI)</l>
-<l>decompose3 (ImageROI, r, g, b)</l>
 <c></c>
-<c>* *将图像转化为频域图像</c>
-<l>rft_generic (g, ImageFFT, 'to_freq', 'none', 'complex', Width)</l>
-<c>*生成一个高斯滤波核</c>
-<l>gen_gauss_filter (ImageGauss, 100, 100, 0, 'n', 'rft', Width, Height)</l>
-<c>*将频域图像核高斯滤波核进行卷积运算</c>
-<l>convol_fft (ImageFFT, ImageGauss, ImageConvol)</l>
-<c>*将卷积后的图像转换为空间域图像</c>
-<l>rft_generic (ImageConvol, ImageFFT1, 'from_freq', 'none', 'byte', Width)</l>
-<c>*用缺陷图像减去背景图像(时域图像)</c>
-<l>sub_image (g, ImageFFT1, ImageSub, 2, 140)</l>
+<c>* 分解RGB三个通道</c>
+<l>decompose3(ImageROI, r, g, b)</l>
 <c></c>
+<c>* 将绿色通道转换为频域图像（傅里叶变换）</c>
+<l>rft_generic(g, ImageFFT, 'to_freq', 'none', 'complex', Width)</l>
+<c></c>
+<c>* 生成频域下的高斯滤波器</c>
+<l>gen_gauss_filter(ImageGauss, 100, 100, 0, 'n', 'rft', Width, Height)</l>
+<c></c>
+<c>* 在频域中进行卷积运算（滤波）</c>
+<l>convol_fft(ImageFFT, ImageGauss, ImageConvol)</l>
+<c></c>
+<c>* 将卷积结果转换回时域图像</c>
+<l>rft_generic(ImageConvol, ImageFFT1, 'from_freq', 'none', 'byte', Width)</l>
+<c></c>
+<c>* 图像差分：原图减去背景图，突出缺陷</c>
+<l>sub_image(g, ImageFFT1, ImageSub, 2, 140)</l>
+<c></c>
+<c>* 对差分图像做轻度高斯滤波</c>
 <l>smooth_image(ImageSub, SmoothImageROI, 'gauss', 1)</l>
 <c></c>
-<c>* 预处理：中值滤波降噪，去除随机噪声</c>
+<c>* 中值滤波降噪，去除随机干扰</c>
 <l>median_image(g, ImageMedian, 'circle', 3, 'mirrored')</l>
 <c></c>
-<l>emphasize (SmoothImageROI, EnhancedImage, 10, 10, 1)</l>
+<c>* 图像增强处理</c>
+<l>emphasize(ImageMedian, EnhancedImage, 10, 10, 1)</l>
 <c></c>
-<c>* 灰度拉伸增强裂纹特征</c>
+<c>* 灰度线性拉伸以增强裂纹特征</c>
 <l>scale_image(EnhancedImage, ScaledImage, 2, -40)</l>
 <c></c>
-<c>* 二次平滑（去除轻微伪影）</c>
-<l>mean_image(EnhancedImage, SmoothImage, 5, 5)</l>
+<c>* 再次平滑处理（去除轻微伪影）</c>
+<l>mean_image(ScaledImage, SmoothImage, 5, 5)</l>
 <c></c>
-<c></c>
+<c>* 计算高斯边缘检测参数</c>
 <l>calculate_lines_gauss_parameters(6, 60, Sigma, Low, High)</l>
-<l>lines_gauss (SmoothImage, Lines, Sigma, Low, High, 'dark', 'true', 'gaussian', 'true')</l>
-<l>union_adjacent_contours_xld(Lines, UnionContours, 10, 1, 'attr_keep')</l>
 <c></c>
+<c>* 基于高斯线模型提取细线结构</c>
+<l>lines_gauss(SmoothImage, Lines, Sigma, Low, High, 'dark', 'true', 'gaussian', 'true')</l>
 <c></c>
+<c>* 合并相邻的轮廓线</c>
+<l>union_adjacent_contours_xld(Lines, LongContours1, 10, 1, 'attr_keep')</l>
+<c></c>
+<c>* 显示原图和合并后的长线</c>
 <l>dev_display(demo_Image)</l>
-<l>dev_display(UnionContours)</l>
+<l>dev_display(LongContours1)</l>
 <c></c>
+<c>* 第一步筛选：提取长度大于2的轮廓线</c>
+<l>select_shape_xld(LongContours1, LongContours2, 'contlength', 'and', 2, 100000)</l>
 <c></c>
-<l>select_shape_xld(UnionContours, LongContours, 'contlength', 'and', 20, 100000)</l>
-<c></c>
+<c>* 显示筛选结果</c>
 <l>dev_display(demo_Image)</l>
 <l>dev_set_line_width(2)</l>
 <l>dev_set_color('red')</l>
-<l>dev_display(LongContours)</l>
-<l>wait_seconds(2)</l>
+<l>dev_display(LongContours2)</l>
 <c></c>
+<c>* 第二步筛选：提取“细长”的轮廓线（anisometry表示长宽比）</c>
+<l>select_shape_xld(LongContours2, LongContours3, 'anisometry', 'and', 1, 6)</l>
 <c></c>
-<l>select_shape_xld(LongContours, CrackContours, 'anisometry', 'and', 2, 999999999)</l>
-<c></c>
-<c>* 显示原图</c>
-<l>dev_display(demo_Image)</l>
-<c>* 显示检测结果</c>
-<l>dev_set_line_width(2)</l>
+<c>* 显示最终检测结果</c>
+<l>dev_display(LongContours3)</l>
+<l>dev_set_line_width(1)</l>
 <l>dev_set_color('red')</l>
-<l>dev_display(CrackContours)</l>
+<l>dev_display(LongContours3)</l>
 <c></c>
-<c></c>
-<c></c>
-<l>wait_seconds(2)</l>
-<l>endfor</l>
 </body>
 <docu id="main">
 <parameters/>

@@ -3,103 +3,143 @@
 <procedure name="main">
 <interface/>
 <body>
-<c>* 设置文件夹路径</c>
+<c>* 设置文件夹路径（引脚形变样本）</c>
 <l>FolderPath := 'E:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/引脚形变' </l>
 <c></c>
+<c>* 获取该文件夹下所有文件路径</c>
 <l>list_files (FolderPath, ['files'], Files)</l>
+<c></c>
+<c>* 获取图像数量</c>
 <l>tuple_length (Files, Length)</l>
 <c></c>
 <c>* 初始化轮廓长度列表</c>
 <l>ContourLengthList := []</l>
 <c></c>
+<c>* 遍历所有图像</c>
 <l>for I := 0 to Length - 1 by 1</l>
+<c>    * 获取当前图像路径</c>
 <l>    tuple_select(Files, I, ImagePath)   </l>
+<c></c>
+<c>    * 读取图像</c>
 <l>    read_image(Image, ImagePath)</l>
+<c></c>
+<c>    * 转为灰度图</c>
 <l>    rgb1_to_gray(Image, GrayImage)</l>
+<c></c>
+<c>    * 高斯平滑，降噪</c>
 <l>    smooth_image(GrayImage, SmoothedImage, 'gauss', 9)</l>
 <c></c>
-<c>    * 二值化 + 闭运算</c>
+<c>    * 自动阈值二值化分割目标</c>
 <l>    binary_threshold(SmoothedImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<c></c>
+<c>    * 闭运算填补小孔洞</c>
 <l>    closing_circle(Region, RegionClosing, 5)</l>
-<l>*     fill_up(RegionClosing, RegionFillUp)</l>
+<c></c>
+<c>    * 获取连通区域</c>
+<c>*     fill_up(RegionClosing, RegionFillUp)  * 可选操作，暂时注释</c>
 <l>    connection(RegionClosing, ConnectedRegions)</l>
 <c></c>
-<c>    * 面积筛选 + 限定ROI</c>
+<c>    * 筛选面积在 20w 到 999999 之间的区域</c>
 <l>    select_shape(ConnectedRegions, TargetRegions2, 'area', 'and', 200000, 999999)</l>
+<c></c>
+<c>    * 提取目标区域图像</c>
 <l>    reduce_domain(Image, TargetRegions2, ImageROI2)</l>
 <c></c>
-<c>    * 获取平滑边界轮廓</c>
+<c>    * 提取区域边界轮廓</c>
 <l>    gen_contour_region_xld(TargetRegions2, Normal_contour, 'border_holes')</l>
+<c></c>
+<c>    * 对轮廓进行平滑</c>
 <l>    smooth_contours_xld(Normal_contour, SmoothedNormal, 5)  </l>
 <l>    Normal_contour := SmoothedNormal</l>
 <c></c>
-<c>    * 显示图像和轮廓</c>
+<c>    * 显示图像和轮廓（可视化）</c>
 <l>    dev_display(Image)</l>
 <l>    dev_display(Normal_contour)</l>
 <c></c>
-<c>    * 获取轮廓长度并保存</c>
+<c>    * 获取轮廓总长度</c>
 <l>    length_xld(Normal_contour, Length)</l>
 <l>    tuple_sum(Length, TotalLength)</l>
 <c></c>
-<c>    </c>
+<c>    * 保存当前图像的轮廓总长到列表中</c>
 <l>    tuple_concat(ContourLengthList, TotalLength, ContourLengthList)</l>
 <c></c>
+<c>    * 等待 0.1 秒，防止界面卡顿</c>
 <l>    wait_seconds(0.1)</l>
 <l>endfor</l>
 <c></c>
-<c>* 查看轮廓长度列表</c>
+<c>* 打开轮廓长度结果可视化窗口</c>
 <l>dev_inspect_ctrl(ContourLengthList)</l>
 <c></c>
 <c></c>
-<c>* 设置文件夹路径</c>
+<c>* 设置文件夹路径（正常引脚样本）</c>
 <l>FolderPath := 'H:/Detect_datasets/钽电容最终数据集/钽电容六面图/正常引脚测试' </l>
 <c></c>
+<c>* 获取该文件夹下所有文件路径</c>
 <l>list_files(FolderPath, ['files'], Files)</l>
+<c></c>
+<c>* 获取图像数量</c>
 <l>tuple_length(Files, Length)</l>
 <c></c>
 <c>* 初始化轮廓长度列表</c>
 <l>ContourLengthList1 := []</l>
 <c></c>
+<c>* 遍历所有图像</c>
 <l>for I := 0 to Length - 1 by 1</l>
+<c>    * 获取当前图像路径</c>
 <l>    tuple_select(Files, I, ImagePath)   </l>
+<c></c>
+<c>    * 读取图像</c>
 <l>    read_image(Image, ImagePath)</l>
+<c></c>
+<c>    * 转为灰度图</c>
 <l>    rgb1_to_gray(Image, GrayImage)</l>
+<c></c>
+<c>    * 高斯平滑，降噪</c>
 <l>    smooth_image(GrayImage, SmoothedImage, 'gauss', 9)</l>
 <c></c>
-<c>    * 固定阈值 + 闭运算</c>
+<c>    * 自动阈值分割</c>
 <l>    binary_threshold(SmoothedImage, Regions, 'max_separability', 'dark', UsedThreshold)</l>
+<c></c>
+<c>    * 闭运算填孔</c>
 <l>    closing_circle(Regions, RegionClosing, 5)</l>
-<l>*     fill_up(RegionClosing, RegionFillUp)</l>
+<c></c>
+<c>    * 获取连通区域</c>
+<c>*     fill_up(RegionClosing, RegionFillUp)  * 可选操作，暂时注释</c>
 <l>    connection(RegionClosing, ConnectedRegions)</l>
 <c></c>
-<c>    * 面积筛选 + 限定ROI</c>
+<c>    * 筛选面积在 20w 到 999999 之间的目标区域</c>
 <l>    select_shape(ConnectedRegions, TargetRegions2, 'area', 'and', 200000, 999999)</l>
+<c></c>
+<c>    * 限定图像处理区域</c>
 <l>    reduce_domain(Image, TargetRegions2, ImageROI2)</l>
 <c></c>
-<c>    * 获取平滑边界轮廓</c>
+<c>    * 提取边界轮廓</c>
 <l>    gen_contour_region_xld(TargetRegions2, Normal_contour, 'border_holes')</l>
+<c></c>
+<c>    * 平滑轮廓</c>
 <l>    smooth_contours_xld(Normal_contour, SmoothedNormal, 5)  </l>
 <l>    Normal_contour := SmoothedNormal</l>
 <c></c>
-<c>    * 显示图像和轮廓</c>
+<c>    * 显示图像和轮廓（可视化）</c>
 <l>    dev_display(Image)</l>
 <l>    dev_display(Normal_contour)</l>
 <c></c>
-<c>    * 获取轮廓长度并保存</c>
+<c>    * 获取轮廓总长度</c>
 <l>    length_xld(Normal_contour, Length)</l>
-<c>    </c>
 <l>    tuple_sum(Length, TotalLength)</l>
 <c></c>
-<c>    </c>
+<c>    * 存入正常图像的轮廓长度列表</c>
 <l>    tuple_concat(ContourLengthList1, TotalLength, ContourLengthList1)</l>
 <c></c>
+<c>    * 等待 0.1 秒</c>
 <l>    wait_seconds(0.1)</l>
 <l>endfor</l>
 <c></c>
-<c>* 查看轮廓长度列表</c>
+<c>* 打开正常图像轮廓长度结果窗口</c>
 <l>dev_inspect_ctrl(ContourLengthList1)</l>
 <c></c>
-<c>** 3500</c>
+<c>** 3500  * &lt;-- 可能是轮廓长度分界阈值（可用于分类）</c>
+<c></c>
 </body>
 <docu id="main">
 <parameters/>

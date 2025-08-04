@@ -3,79 +3,84 @@
 <procedure name="main">
 <interface/>
 <body>
-<c>* 设置文件夹路径</c>
-<l>FolderPath := 'H:/Detect_datasets/钽电容最终数据集/钽电容缺陷分类/炸伤' </l>
-<c></c>
-<l>list_files (FolderPath, ['files'], Files)</l>
-<l>tuple_length (Files, Length)</l>
-<c></c>
-<l>for I := 0 to Length-1 by 1</l>
-<c>    </c>
-<l>tuple_select (Files, I, ImagePath)   </l>
+<c>* 读取图像（路径需设置）</c>
+<l>ImagePath := ''</l>
 <l>read_image (Image, ImagePath)</l>
 <c></c>
+<c>* 获取图像尺寸</c>
 <l>get_image_size (Image, Width, Height)</l>
 <c></c>
-<c></c>
+<c>* 转换为灰度图像</c>
 <l>rgb1_to_gray(Image, GrayImage)</l>
 <c></c>
+<c>* 分解RGB通道</c>
 <l>decompose3(Image, R, G, B)</l>
 <c></c>
-<c></c>
-<c>* 二值化 + 闭运算</c>
+<c>* 灰度图像进行自动阈值分割（分离前景）</c>
 <l>binary_threshold(GrayImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<c></c>
+<c>* 填充区域空洞</c>
 <l>fill_up(Region, RegionFillUp)</l>
 <c></c>
+<c>* 自动多阈值分割（2类）</c>
 <l>auto_threshold (GrayImage, Regions, 2)</l>
+<c></c>
+<c>* 计算区域面积和中心</c>
 <l>area_center(Regions, Area1, Row, Column)</l>
 <c></c>
-<c></c>
+<c>* 筛选所有合理面积区域（可能为缺陷）</c>
 <l>select_shape(Regions, DefectResult, 'area', 'and', 0, 9999999)</l>
 <c></c>
+<c>* 计算：填充区域与缺陷之间的差异区域</c>
 <l>difference (RegionFillUp, DefectResult, RegionDifference)</l>
 <c></c>
-<c></c>
+<c>* 再次对图像做二值化处理</c>
 <l>binary_threshold(GrayImage, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<c></c>
+<c>* 闭运算填补小孔洞</c>
 <l>closing_circle(Region, RegionClosing, 5)</l>
+<c></c>
+<c>* 填充闭运算结果</c>
 <l>fill_up(RegionClosing, RegionFillUp)</l>
+<c></c>
+<c>* 连接区域（获取连通组件）</c>
 <l>connection(RegionClosing, ConnectedRegions)</l>
 <c></c>
-<c>* 面积筛选 + 限定ROI</c>
+<c>* 面积筛选目标区域（比如引脚主体）</c>
 <l>select_shape(ConnectedRegions, TargetRegions2, 'area', 'and', 200000, 999999)</l>
 <c></c>
+<c>* 对目标区域腐蚀，缩小一定边界（用于避免干扰）</c>
 <l>erosion_circle (TargetRegions2, RegionErosion, 25)</l>
+<c></c>
+<c>* 填充腐蚀后区域</c>
 <l>fill_up(RegionErosion, RegionFillUp1)</l>
 <c></c>
-<c></c>
+<c>* 将图像处理限制在目标ROI区域中</c>
 <l>reduce_domain(Image, RegionFillUp1, ImageROI2)</l>
-<l>dev_display (Image) </l>
+<c></c>
+<c>* 显示原图</c>
+<l>dev_display (Image)</l>
+<c></c>
+<c>* 显示提取的目标区域</c>
 <l>dev_display (TargetRegions2)</l>
 <c></c>
-<c></c>
-<c>* 3. 平滑图像</c>
+<c>* 对绿色通道做平滑处理（用于增强后续检测）</c>
 <l>smooth_image(G, SmoothImageROI, 'gauss', 2)</l>
 <c></c>
-<c>* 4. 灰度增强（线性映射）</c>
-<l>* scale_image(SmoothImageROI, EnhancedImageROI, 2, -100)</l>
-<c></c>
+<c>* 灰度增强（线性拉伸，提升缺陷对比度）</c>
 <l>scale_image(SmoothImageROI, EnhancedImageROI, 2, -100)</l>
 <c></c>
-<c>* 5. 阈值处理提取疑似缺陷</c>
+<c>* 阈值处理，提取增强图像中暗小区域（可能为缺陷）</c>
 <l>threshold(EnhancedImageROI, DefectRegion, 0, 20)</l>
 <c></c>
-<c>* 6. 连通区域分析</c>
+<c>* 连通区域分析（分离多个缺陷区域）</c>
 <l>connection(DefectRegion, ConnectedRegions)</l>
 <c></c>
-<c>* 8. 计算面积与中心</c>
+<c>* 计算面积和质心（可能用于判断）</c>
 <l>area_center(ConnectedRegions, Area1, Row, Column)</l>
 <c></c>
-<c></c>
-<c>* 7. 面积过滤（初筛）</c>
+<c>* 面积筛选缺陷结果（再次剔除干扰）</c>
 <l>select_shape(ConnectedRegions, DefectResult, 'area', 'and', 0, 9999999999)</l>
-<c></c>
-<c></c>
-<l>wait_seconds(2)</l>
-<l>endfor</l>
 <c></c>
 </body>
 <docu id="main">

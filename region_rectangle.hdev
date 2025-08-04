@@ -3,65 +3,89 @@
 <procedure name="main">
 <interface/>
 <body>
+<c>* 设置文件夹路径</c>
+<l>FolderPath := 'C:/Users/19255/Desktop/测试/康视达/130W相机---5000us,数字增益2.0/沙眼' </l>
 <c></c>
-<l>ImagePath := 'F:/Detect_datasets/钽电容最终数据集/崩缺/2.bmp'</l>
-<c>* 读取图像</c>
-<l>read_image (Image, ImagePath)</l>
-<c>* 分解RGB通道并转换为灰度图</c>
-<l>rgb1_to_gray (Image, GrayImage)</l>
+<c>* 获取文件夹中的所有图像文件</c>
+<l>list_files(FolderPath, ['files'], Files)</l>
+<l>tuple_length(Files, Length)</l>
 <c></c>
-<c>* 平滑处理并阈值分割</c>
-<l>smooth_image (GrayImage, ImageSmooth, 'gauss', 6)</l>
-<l>threshold (ImageSmooth, Region, 0, 100)</l>
-<l>fill_up (Region, RegionFillUp)</l>
-<c>* 获取区域方向和最小外接矩形</c>
-<l>orientation_region (RegionFillUp, Phi)</l>
-<l>smallest_rectangle2 (RegionFillUp, Row, Column, Phi, Length1, Length2)</l>
-<l>gen_rectangle2 (RegionOrigin, Row, Column, Phi, Length1, Length2)</l>
+<c>* 遍历每一张图像</c>
+<l>for I := 0 to Length - 1 by 1</l>
 <c></c>
-<c>* 定义下上右左3缩进像素</c>
-<l>shrink_top := 6</l>
-<l>shrink_bottom := 28</l>
-<l>shrink_left := -12</l>
-<l>shrink_right := 156</l>
+<c>    * 获取当前图像路径</c>
+<l>    tuple_select(Files, I, ImagePath)   </l>
 <c></c>
-<c>* 计算缩小后的矩形参数</c>
-<l>NewLength1 := Length1 - (shrink_left + shrink_right)</l>
-<l>NewLength2 := Length2 - (shrink_top + shrink_bottom)</l>
+<c>    * 读取图像</c>
+<l>    read_image(Image, ImagePath)</l>
 <c></c>
-<c>* 计算中心点偏移（考虑不对称缩进）</c>
-<l>OffsetX := (shrink_right - shrink_left) / 2.0</l>
-<l>OffsetY := (shrink_bottom - shrink_top) / 2.0</l>
-<l>NewRow := Row + OffsetY</l>
-<l>NewColumn := Column + OffsetX</l>
+<c>    * 转为灰度图</c>
+<l>    rgb1_to_gray(Image, GrayImage)</l>
 <c></c>
-<c>* 生成缩小后的矩形Region</c>
-<l>gen_rectangle2 (RectangleShrinked, NewRow, NewColumn, Phi, NewLength1, NewLength2)</l>
+<c>    * 使用高斯滤波进行图像平滑（降噪）</c>
+<l>    smooth_image(GrayImage, Smooth, 'gauss', 6)</l>
 <c></c>
-<l>reduce_domain (GrayImage, RectangleShrinked, ImageROI)</l>
+<c>    * 灰度阈值分割，提取沙眼区域</c>
+<l>    threshold(Smooth, Region1, 80, 120)</l>
 <c></c>
-<l>dev_display (Image)</l>
-<l>dev_display (ImageROI)</l>
+<c>    * 填充区域中的空洞，形成完整区域</c>
+<l>    fill_up(Region1, RegionFill)</l>
 <c></c>
-<c>** region区域</c>
+<c>    * 获取区域的主方向角 Phi（用于旋转对齐）</c>
+<l>    orientation_region(RegionFill, Phi)</l>
 <c></c>
+<c>    * 获取最小外接旋转矩形的中心位置、角度和尺寸</c>
+<l>    smallest_rectangle2(RegionFill, Row, Column, Phi, Length1, Length2)</l>
 <c></c>
-<l>* ImagePath := 'F:/Detect_datasets/钽电容最终数据集/崩缺/2.bmp'</l>
+<c>    * 创建仿射变换矩阵，将区域旋转为水平（角度设置为 0）</c>
+<l>    vector_angle_to_rigid(Row, Column, Phi, Row, Column, 0, HomMat2D)</l>
 <c></c>
-<c>* 读取图像</c>
-<l>* read_image (Image, ImagePath)</l>
-<c>* 分解RGB通道并转换为灰度图</c>
-<l>* rgb1_to_gray (Image, GrayImage)</l>
-<l>* Front_region (GrayImage, ImageROI)</l>
+<c>    * 对图像应用仿射变换（进行旋转对齐）</c>
+<l>    affine_trans_image(Image, RotatedImage, HomMat2D, 'constant', 'false')</l>
 <c></c>
-<l>* Front_Print_region (GrayImage, ImageROI)</l>
+<c>    * 对填充区域也应用相同的仿射变换</c>
+<l>    affine_trans_region(RegionFill, RotatedRegion, HomMat2D, 'nearest_neighbor')</l>
 <c></c>
-<l>* Front_Character_region (GrayImage, ImageROI)</l>
+<c>    * 设置上下左右方向的像素缩进（单位：像素）</c>
+<l>    shrink_top := 10</l>
+<l>    shrink_bottom := 8</l>
+<l>    shrink_left := 0</l>
+<l>    shrink_right := 825</l>
 <c></c>
+<c>    * 获取旋转后区域的外接矩形边界框坐标（R1,C1 到 R2,C2）</c>
+<l>    smallest_rectangle1(RotatedRegion, R1, C1, R2, C2)</l>
 <c></c>
+<c>    * 计算缩进后的矩形边界坐标</c>
+<l>    NewR1 := R1 + shrink_top</l>
+<l>    NewR2 := R2 - shrink_bottom</l>
+<l>    NewC1 := C1 + shrink_left</l>
+<l>    NewC2 := C2 - shrink_right</l>
 <c></c>
-<l>* dev_display (Image)</l>
-<l>* dev_display (ImageROI)</l>
+<c>    * 生成缩小后的矩形 ROI 区域（在旋转坐标系中）</c>
+<l>    gen_rectangle1(ShrinkedRect, NewR1, NewC1, NewR2, NewC2)</l>
+<c></c>
+<c>    * 计算仿射变换的逆矩阵（用于回到原图空间）</c>
+<l>    hom_mat2d_invert(HomMat2D, HomMatInv)</l>
+<c></c>
+<c>    * 将缩小后的 ROI 区域映射回原图坐标系中</c>
+<l>    affine_trans_region(ShrinkedRect, FinalROI, HomMatInv, 'nearest_neighbor')</l>
+<c></c>
+<c>    * 显示原图</c>
+<l>    dev_display(Image)</l>
+<c></c>
+<c>    * 设置显示颜色为绿色</c>
+<l>    dev_set_color('green')</l>
+<c></c>
+<c>    * 显示最终 ROI 区域</c>
+<l>    dev_display(FinalROI)</l>
+<c></c>
+<c>    * 计算最终 ROI 的面积与中心坐标</c>
+<l>    area_center(FinalROI, Area, Row1, Column1)</l>
+<c></c>
+<c>    * 暂停 2 秒以便观察显示结果</c>
+<l>    wait_seconds(2)</l>
+<c></c>
+<l>endfor</l>
 <c></c>
 </body>
 <docu id="main">
